@@ -1,25 +1,18 @@
 from PIL import Image
 from collections import Counter
 from contextlib import asynccontextmanager
-from datetime import datetime
 from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from io import BytesIO
 from pathlib import Path
-from pydantic import BaseModel
 from pydantic import BaseModel, EmailStr, Field
-from pydantic import BaseModel, Field
 from starlette.middleware.sessions import SessionMiddleware
 from tensorflow.keras.models import load_model
-from typing import Any, Dict, List, Optional
 from typing import Any, Dict, List, Optional, Tuple
-from typing import List, Optional
 import base64
 import hashlib
 import json
@@ -146,8 +139,6 @@ def init_db(force_recreate: bool = False) -> Dict[str, Any]:
                 created_at TEXT NOT NULL
             )
         """)
-
-        # Admin credentials are not seeded here; they are managed directly in the database.
 
         # 3. Contacts Messages Table
         cursor.execute("""
@@ -994,9 +985,6 @@ class PredictRequest(BaseModel):
     lang: str = "SWE"
 
 
-
-
-
 @project_2_app.get("/api/models")
 async def get_models():
     models_list = []
@@ -1037,12 +1025,26 @@ async def predict_character(req: PredictRequest):
     threshold = min(30, np.percentile(arr, 95) * 0.4) if arr.max() > 0 else 30
     arr[arr < threshold] = 0
 
-    coords = np.argwhere(arr > 0)
-    if coords.size == 0:
+    # Handle image bounds & filter out stray ink/lines relative to the densest parts
+    row_sums = arr.sum(axis=1)
+    col_sums = arr.sum(axis=0)
+
+    if row_sums.max() == 0 or col_sums.max() == 0:
         return {"status": "error", "message": "Inget tecken hittades / No character detected."}
 
-    y0, x0 = coords.min(axis=0)
-    y1, x1 = coords.max(axis=0)
+    # Thresholding at 5% of the max density removes disjointed thin strokes like the "ink at the top" artifact
+    row_thresh = row_sums.max() * 0.05
+    col_thresh = col_sums.max() * 0.05
+
+    valid_rows = np.argwhere(row_sums > row_thresh)
+    valid_cols = np.argwhere(col_sums > col_thresh)
+
+    if valid_rows.size == 0 or valid_cols.size == 0:
+        return {"status": "error", "message": "Inget tydligt tecken hittades / No clear character detected."}
+
+    y0, y1 = int(valid_rows.min()), int(valid_rows.max())
+    x0, x1 = int(valid_cols.min()), int(valid_cols.max())
+    
     cropped = arr[y0:y1 + 1, x0:x1 + 1]
 
     h, w = cropped.shape
@@ -1082,8 +1084,6 @@ async def predict_character(req: PredictRequest):
         "preview": preview_b64,
         "candidates": candidates
     }
-
-
 
 
 ########################################
@@ -1412,4 +1412,3 @@ app.mount("/ocr", project_2_app)
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="127.0.0.1", port=3000, reload=True)
-

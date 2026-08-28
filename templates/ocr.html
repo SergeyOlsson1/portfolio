@@ -821,6 +821,9 @@ body {
                             <button type="button" id="tool-eraser" class="tool-btn" title="Suddgummi / Eraser">
                                 🧹 <span id="tool-eraser-text">Sudd</span>
                             </button>
+                            <button type="button" id="btn-undo" class="tool-btn" title="Ångra / Undo">
+                                ↩️ <span id="btn-undo-text">Ångra</span>
+                            </button>
                         </div>
                         <button type="button" id="btn-clear-canvas" class="tool-btn clear-btn" title="Rensa / Clear">
                             🗑️ <span id="btn-clear-text">Rensa</span>
@@ -931,6 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tab_image: "Bild",
             tool_brush: "Pensel",
             tool_eraser: "Sudd",
+            btn_undo: "Ångra",
             btn_clear: "Rensa",
             upload_prompt: "Klicka eller dra bild hit",
             upload_hint: "eller klistra in med Ctrl+V",
@@ -961,6 +965,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tab_image: "Image",
             tool_brush: "Brush",
             tool_eraser: "Eraser",
+            btn_undo: "Undo",
             btn_clear: "Clear",
             upload_prompt: "Click or drag image here",
             upload_hint: "or paste with Ctrl+V",
@@ -999,6 +1004,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const toolBrush = document.getElementById('tool-brush');
     const toolEraser = document.getElementById('tool-eraser');
+    const btnUndo = document.getElementById('btn-undo');
     const btnClearCanvas = document.getElementById('btn-clear-canvas');
 
     const imageUploadWrapper = document.getElementById('image-upload-wrapper');
@@ -1054,6 +1060,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('tab-image-text').textContent = t.tab_image;
         document.getElementById('tool-brush-text').textContent = t.tool_brush;
         document.getElementById('tool-eraser-text').textContent = t.tool_eraser;
+        document.getElementById('btn-undo-text').textContent = t.btn_undo;
         document.getElementById('btn-clear-text').textContent = t.btn_clear;
         document.getElementById('upload-prompt-text').innerHTML = `<strong>${t.upload_prompt}</strong>`;
         document.getElementById('upload-hint-text').textContent = t.upload_hint;
@@ -1104,7 +1111,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('theme', 'dark');
             }
             updateOcrThemeBtn();
-            // Dispatch storage event manually for same-page sync if needed (though not strictly necessary here, but good practice if other scripts on same page listen)
             window.dispatchEvent(new Event('storage'));
         });
         updateOcrThemeBtn();
@@ -1130,13 +1136,40 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // Canvas Drawing Engine
+    // Canvas Drawing Engine & Undo Functionality
     // ==========================================
+    let drawHistory = [];
+    let historyStep = -1;
+
     function initCanvas() {
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
+    }
+
+    function saveCanvasState() {
+        historyStep++;
+        if (historyStep < drawHistory.length) {
+            drawHistory.length = historyStep;
+        }
+        drawHistory.push(canvas.toDataURL('image/png'));
+    }
+
+    function undoCanvas() {
+        if (historyStep > 0) {
+            historyStep--;
+            const img = new Image();
+            img.src = drawHistory[historyStep];
+            img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+            };
+        } else if (historyStep === 0) {
+            historyStep = -1;
+            drawHistory = [];
+            initCanvas();
+        }
     }
 
     function getCanvasCoordinates(e) {
@@ -1160,6 +1193,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startDrawing(e) {
         e.preventDefault();
+        if (!isDrawing) saveCanvasState();
         isDrawing = true;
         const pos = getCanvasCoordinates(e);
         ctx.beginPath();
@@ -1217,7 +1251,10 @@ document.addEventListener('DOMContentLoaded', () => {
         toolBrush.classList.remove('active');
     });
 
+    btnUndo.addEventListener('click', undoCanvas);
+
     btnClearCanvas.addEventListener('click', () => {
+        saveCanvasState();
         initCanvas();
         resetResultState();
     });
