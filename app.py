@@ -15,19 +15,19 @@ STATIC_DIR = BASE_DIR / "static"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize SQLite database
+    # Initialize SQLite database exactly as originally written
     db_info = init_db()
-    print(f"[Lifespan] Database '{db_info.get('database_file')}' initialized at {db_info.get('db_path')}")
+    print(f"[Lifespan] Database '{db_info.get('database_file')}' initialized successfully at {db_info.get('db_path')}")
     yield
 
 app = FastAPI(
     title="Name Surname Portfolio API",
-    description="Modular FastAPI backend for portfolio assets, OCR, and Wordle.",
+    description="FastAPI backend powered by local SQLite database serving portfolio assets, contact messages, admin auth, and avatar persistence.",
     version="1.0.0",
     lifespan=lifespan,
 )
 
-# Middleware
+# Enable CORS for local development and external integrations
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -39,7 +39,7 @@ app.add_middleware(
 # Mount Static Files (CSS, JS, Assets)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-# Mount Routers and Sub-Applications
+# Mount Routers and Sub-Projects
 app.include_router(portfolio_router)
 app.mount("/wordle", wordle_app)
 app.mount("/ocr", ocr_app)
