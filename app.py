@@ -432,8 +432,6 @@ def get_db_info() -> Dict[str, Any]:
         }
 
 
-
-
 ########################################
 # WORDLE LOGIC
 ########################################
@@ -555,7 +553,6 @@ def load_wordlist() -> list[str]:
 ########################################
 # WORDLE APP
 ########################################
-
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -843,13 +840,9 @@ async def validate_word(payload: WordValidationRequest):
     })
 
 
-
-
 ########################################
 # OCR APP
 ########################################
-
-
 
 # ==============================================================================
 # Model Loading & Configuration
@@ -1025,25 +1018,13 @@ async def predict_character(req: PredictRequest):
     threshold = min(30, np.percentile(arr, 95) * 0.4) if arr.max() > 0 else 30
     arr[arr < threshold] = 0
 
-    # Handle image bounds & filter out stray ink/lines relative to the densest parts
-    row_sums = arr.sum(axis=1)
-    col_sums = arr.sum(axis=0)
-
-    if row_sums.max() == 0 or col_sums.max() == 0:
+    # Ensure character actually exists in array to prevent "No character detected" regression
+    coords = np.argwhere(arr > 0)
+    if coords.size == 0:
         return {"status": "error", "message": "Inget tecken hittades / No character detected."}
 
-    # Thresholding at 5% of the max density removes disjointed thin strokes like the "ink at the top" artifact
-    row_thresh = row_sums.max() * 0.05
-    col_thresh = col_sums.max() * 0.05
-
-    valid_rows = np.argwhere(row_sums > row_thresh)
-    valid_cols = np.argwhere(col_sums > col_thresh)
-
-    if valid_rows.size == 0 or valid_cols.size == 0:
-        return {"status": "error", "message": "Inget tydligt tecken hittades / No clear character detected."}
-
-    y0, y1 = int(valid_rows.min()), int(valid_rows.max())
-    x0, x1 = int(valid_cols.min()), int(valid_cols.max())
+    y0, x0 = coords.min(axis=0)
+    y1, x1 = coords.max(axis=0)
     
     cropped = arr[y0:y1 + 1, x0:x1 + 1]
 
@@ -1089,7 +1070,6 @@ async def predict_character(req: PredictRequest):
 ########################################
 # MAIN APP
 ########################################
-
 
 
 # Base Directory Setup
@@ -1401,7 +1381,6 @@ async def save_site_content_endpoint(payload: Dict[str, Any]):
         "content": updated,
         "message": "Webbplatsinnehåll och länkar sparade i SQLite-databasen."
     }
-
 
 
 # ==========================================
