@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Word Matrix Bot - AI Solver</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/wordle/static/assets/style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Outfit', 'Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            800: '#1f2937',
+                            850: '#111827',
+                            900: '#0b0f19', // Matches portfolio --bg-secondary
+                            925: '#070b14',
+                            950: '#030712', // Matches portfolio --bg-primary
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 0.5; box-shadow: 0 0 5px rgba(34,211,238,0.5); }
+            50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 15px rgba(34,211,238,1); }
+        }
+        .animate-breathe {
+            animation: breathe 2s infinite ease-in-out;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background-color: #030712; /* Matches portfolio dark bg */
+        }
+
+        /* Light Theme Overrides */
+        body.light-theme {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+            color: #0f172a !important;
+        }
+        body.light-theme header {
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border-color: rgba(226, 232, 240, 0.8) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+        }
+        body.light-theme .theme-nav-btn {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+        }
+        body.light-theme .tile-empty {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.02) !important;
+        }
+        body.light-theme .modal-card-theme {
+            background: linear-gradient(to bottom, #ffffff, #f8fafc) !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+        }
+        body.light-theme .modal-inner-box {
+            background-color: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+        body.light-theme .key-default {
+            background-color: #ffffff !important;
+            color: #334155 !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 1px 0 rgba(203, 213, 225, 1) !important;
+            font-weight: 700 !important;
+            transition: all 0.15s ease;
+        }
+        body.light-theme .key-default:hover {
+            background-color: #f8fafc !important;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.06), 0 1px 0 rgba(203, 213, 225, 1) !important;
+        }
+        body.light-theme .key-default:active {
+            transform: translateY(1px);
+            box-shadow: 0 0px 0px rgba(0,0,0,0.0), 0 0px 0 rgba(203, 213, 225, 1) !important;
+        }
+        body.light-theme #messageBox.text-cyan-300, body.light-theme .text-cyan-300 { color: #0284c7 !important; }
+        body.light-theme .bg-cyan-400 { background-color: #0284c7 !important; }
+        body.light-theme .text-cyan-400 { color: #0369a1 !important; }
+        body.light-theme .text-amber-400 { color: #d97706 !important; }
+        body.light-theme .text-emerald-400 { color: #059669 !important; }
+        body.light-theme .text-rose-400 { color: #e11d48 !important; }
+        
+        body.light-theme #solveRowBtn {
+            background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%) !important;
+            color: #ffffff !important;
+            border-color: #94a3b8 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        }
+        body.light-theme #solveRowBtn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%) !important;
+        }
+        body.light-theme #solveRowBtn:disabled,
+        body.light-theme #botPlayBtn:disabled {
+            background: #e2e8f0 !important;
+            color: #94a3b8 !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: none !important;
+        }
+
+        /* Header Icon Buttons in Dark & Light Modes */
+        .header-icon-btn {
+            color: #94a3b8;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            padding: 2px;
+            border-radius: 6px;
+        }
+        .header-icon-btn:hover,
+        .header-icon-btn:focus-visible {
+            color: #38bdf8 !important;
+            transform: scale(1.12);
+            filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.4));
+        }
+
+        /* Light Theme Header Icons - Highlight light blue on hover */
+        body.light-theme .header-icon-btn,
+        body.light-theme #hintBtn,
+        body.light-theme #statsBtn,
+        body.light-theme #helpBtn,
+        body.light-theme #leaderboardBtn,
+        body.light-theme #settingsBtn,
+        body.light-theme #fullscreenBtn {
+            color: #64748b !important;
+        }
+
+        body.light-theme .header-icon-btn:hover,
+        body.light-theme .header-icon-btn:focus-visible,
+        body.light-theme #hintBtn:hover,
+        body.light-theme #statsBtn:hover,
+        body.light-theme #helpBtn:hover,
+        body.light-theme #leaderboardBtn:hover,
+        body.light-theme #settingsBtn:hover,
+        body.light-theme #fullscreenBtn:hover {
+            color: #0284c7 !important; /* light blue highlight */
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.5)) !important;
+        }
+
+
+        /* Light Theme Modal & High Contrast Overrides */
+        body.light-theme .modal-card-theme h3,
+        body.light-theme .modal-card-theme h4,
+        body.light-theme .modal-card-theme .text-white,
+        body.light-theme .modal-card-theme .text-slate-200,
+        body.light-theme .modal-card-theme .text-slate-300 {
+            color: #0f172a !important;
+        }
+        body.light-theme .modal-card-theme .text-slate-400 {
+            color: #64748b !important;
+        }
+        body.light-theme .modal-card-theme input {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+        }
+        body.light-theme .modal-card-theme .bg-slate-950,
+        body.light-theme .modal-card-theme .bg-slate-900,
+        body.light-theme .modal-card-theme .bg-slate-950\/60,
+        body.light-theme .modal-card-theme .bg-slate-950\/80 {
+            background-color: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+        }
+        body.light-theme .modal-card-theme button.bg-slate-800 {
+            background-color: #e2e8f0 !important;
+            color: #1e293b !important;
+            border-color: #cbd5e1 !important;
+        }
+        body.light-theme .modal-card-theme button.bg-slate-800:hover {
+            background-color: #cbd5e1 !important;
+        }
+        body.light-theme #targetWordDisplay {
+            background-color: #ecfdf5 !important;
+            color: #059669 !important;
+            border-color: #a7f3d0 !important;
+        }
+
+        /* Fixed Standard Wordle Tile Sizing (10% scaled down: 56px) */
+        .board-tile {
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            min-height: 56px;
+        }
+        @media (max-width: 380px) {
+            .board-tile {
+                width: 46px;
+                height: 46px;
+                min-width: 46px;
+                min-height: 46px;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-100 flex flex-col items-center justify-start min-h-screen w-full select-none pb-6 relative">
+    <script>
+        (function() {
+            var mainTheme = localStorage.getItem('theme') || 'light';
+            if (mainTheme === 'dark') {
+                document.body.classList.remove('light-theme');
+            } else {
+                document.body.classList.add('light-theme');
+            }
+            var lang = localStorage.getItem('app_lang');
+            if (lang) {
+                document.documentElement.lang = lang;
+            }
+        })();
+    </script>
+
+    <!-- Confetti Canvas Overlay -->
+    <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
+
+    <!-- EXACT TOP NAVIGATION BAR (Non-sticky) -->
+    <header class="w-full border-b border-slate-800 bg-slate-950 relative z-30 shadow-sm">
+        <div class="w-full max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+            
+            <!-- Left: Brand Logo & Back to Portfolio -->
+            <div class="flex items-center gap-3 shrink-0">
+                <a href="/" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/60 px-2.5 py-1 rounded-xl transition flex items-center gap-1 font-medium" title="Tillbaka till portfölj">
+                    <span>←</span> <span>Portfolio</span>
+                </a>
+                <h1 class="font-display text-lg sm:text-xl font-black tracking-wider bg-gradient-to-r from-sky-500 via-sky-400 to-violet-400 bg-clip-text text-transparent flex items-center gap-1.5 whitespace-nowrap">
+                    WORD MATRIX
+                    <span class="text-sky-400 font-mono text-[10px] px-2 py-0.5 rounded-full bg-sky-950/90 border border-sky-500/40 font-bold">BOT</span>
+                </h1>
+            </div>
+            
+            <!-- Center: Live Timer Badge (Hidden by default when off) -->
+            <div id="timerContainer" class="hidden items-center gap-1.5 bg-slate-900 border border-slate-800 px-3.5 py-1 rounded-xl text-xs sm:text-sm font-mono font-bold text-amber-300 shadow-sm theme-nav-btn" title="Game Timer">
+                <span>⏱️</span>
+                <span id="timerDisplay">02:00</span>
+            </div>
+
+            <!-- Right: Exact Classic Header Icons -->
+            <div class="flex items-center gap-2 sm:gap-3 text-slate-300">
+                <!-- Hint Button -->
+                <button id="hintBtn" class="header-icon-btn text-lg sm:text-xl" title="Get a Hint">
+                    💡
+                </button>
+
+                <!-- Statistics Button -->
+                <button id="statsBtn" class="header-icon-btn text-lg sm:text-xl" title="Statistics">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </button>
+
+                <!-- Help / Question Mark Button -->
+                <button id="helpBtn" class="header-icon-btn text-lg sm:text-xl" title="How to Play / Help">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </button>
+
+                <!-- Leaderboard Button -->
+                <button id="leaderboardBtn" class="header-icon-btn text-lg sm:text-xl" title="Leaderboard & Rankings">
+                    🏆
+                </button>
+
+                <!-- Fullscreen Button -->
+                <button id="fullscreenBtn" class="header-icon-btn text-lg sm:text-xl" title="Toggle Fullscreen">
+                    <svg id="fullscreenIconEnter" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                    <svg id="fullscreenIconExit" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4l5 5m0 0H5m4 0V5m11-1l-5 5m0 0h4m-4 0V5M4 20l5-5m0 0H5m4 0v4m11 1l-5-5m0 0h4m-4 0v4" />
+                    </svg>
+                </button>
+
+                <!-- Settings Button -->
+                <button id="settingsBtn" class="header-icon-btn text-lg sm:text-xl" title="Game Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+
+                <!-- Hidden test quick restart button -->
+                <button id="quickRestartBtn" class="hidden" title="Restart"></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- EXACT MAIN GAMEPLAY STRUCTURE (Tight distance between tiles and keyboard) -->
+    <main class="w-full max-w-4xl flex flex-col items-center justify-start px-2 pt-1 pb-2 gap-0">
+        
+        <!-- TOP ROW: Candidate Counter (Left) | Board (Center) | Action Buttons (Right) -->
+        <div class="w-full flex flex-col md:flex-row items-center md:items-start justify-center gap-4 sm:gap-6 my-0">
+            
+            <!-- LEFT COLUMN: Candidate Number with 'Candidates' above (Top Left) -->
+            <div class="hidden md:flex flex-1 basis-0 justify-end items-start pt-1 pr-4">
+                <div class="flex flex-col items-end">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs lg:text-sm font-mono font-bold text-cyan-300 tracking-wider whitespace-nowrap">Candidates</span>
+                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-breathe"></span>
+                    </div>
+                    <span id="candidateNumber" class="text-xs lg:text-sm font-mono font-black text-cyan-300 tracking-wider whitespace-nowrap">12 953</span>
+                </div>
+            </div>
+
+            <!-- CENTER COLUMN: 5x6 Wordle Board -->
+            <div class="flex flex-col items-center justify-center shrink-0">
+                <!-- Mobile Candidate Count -->
+                <div class="flex md:hidden mb-1 text-cyan-300 font-mono font-bold text-xs flex-col items-center">
+                    <div class="flex items-center gap-1">
+                        <span class="text-xs">Candidates</span>
+                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-breathe"></span>
+                    </div>
+                    <span id="candidateNumberMobile" class="text-xs font-black">12 953</span>
+                </div>
+
+                <div id="board" class="flex flex-col items-center justify-center gap-1.5 perspective-1000">
+                    <!-- Rows dynamically created by JS -->
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Action Buttons (Top Right) -->
+            <div class="flex-1 basis-0 flex flex-col items-center md:items-start justify-start pt-1 pl-0 md:pl-4">
+                <div class="w-full max-w-[200px] md:max-w-[220px] flex flex-col gap-2">
+                    <button id="solveRowBtn" class="w-full bg-slate-800/80 hover:bg-slate-700/90 disabled:from-slate-900 disabled:to-slate-900 disabled:text-slate-600 disabled:border-slate-800 border border-slate-700/80 text-slate-300 font-bold py-2.5 px-3.5 rounded-xl shadow-md transition active:scale-95 text-xs sm:text-sm tracking-wide flex justify-center items-center gap-1.5 disabled:cursor-not-allowed">
+                        <span>⚡</span> Solve Row
+                    </button>
+                    <button id="botPlayBtn" class="w-full bg-gradient-to-r from-sky-600 to-violet-600 hover:from-sky-500 hover:to-violet-500 disabled:from-slate-900 disabled:to-slate-900 disabled:text-slate-600 disabled:border-slate-800 border border-sky-500/30 text-white font-bold py-2.5 px-3.5 rounded-xl shadow-md transition active:scale-95 text-xs sm:text-sm tracking-wide flex justify-center items-center gap-1.5 disabled:cursor-not-allowed">
+                        <span>🤖</span> Bot Auto-Play
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATUS MESSAGE BAR (Zero height when empty to keep keyboard tight under tiles) -->
+        <div id="messageBox" class="text-xs sm:text-sm font-semibold text-center flex items-center justify-center transition-all duration-200 px-2 my-0 empty:h-0"></div>
+
+        <!-- KEYBOARD (Positioned close to the tiles) -->
+        <div class="w-full max-w-[500px] mt-1 flex flex-col gap-1.5 px-1">
+            <div class="flex justify-center gap-1.5 w-full" id="row1"></div>
+            <div class="flex justify-center gap-1.5 w-full" id="row2"></div>
+            <div class="flex justify-center gap-1.5 w-full" id="row3"></div>
+        </div>
+    </main>
+
+    <!-- MODAL: GAME OVER & SAVE SCORE -->
+    <div id="modalOverlay" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl flex flex-col items-center modal-card-theme">
+            <div id="modalIcon" class="text-4xl mb-1">🎉</div>
+            <h3 id="modalTitle" class="font-display text-2xl font-black mb-1 text-white">Brilliant! Solved!</h3>
+            <p id="modalSubtext" class="text-slate-400 text-xs mb-3">Target word revealed:</p>
+            <div id="targetWordDisplay" class="font-mono font-black text-2xl tracking-widest text-emerald-400 bg-slate-950 border border-emerald-500/30 rounded-2xl px-4 py-2 mb-3 w-full uppercase shadow-inner modal-inner-box"></div>
+            
+            <div class="grid grid-cols-3 gap-2 w-full mb-4 text-center text-xs bg-slate-950/60 p-2.5 rounded-2xl border border-slate-800 modal-inner-box">
+                <div>
+                    <div class="text-slate-400 text-[10px] uppercase font-bold">Guesses</div>
+                    <div id="modalGuessesCount" class="font-mono font-bold text-sm text-cyan-300">3 / 6</div>
+                </div>
+                <div>
+                    <div class="text-slate-400 text-[10px] uppercase font-bold">Points</div>
+                    <div id="modalPointsEarned" class="font-mono font-bold text-sm text-amber-300">50 pts</div>
+                </div>
+                <div>
+                    <div class="text-slate-400 text-[10px] uppercase font-bold">Win Rate</div>
+                    <div id="modalWinRate" class="font-mono font-bold text-sm text-emerald-400">100%</div>
+                </div>
+            </div>
+
+            <!-- Leaderboard Save Section -->
+            <div id="leaderboardSaveSection" class="w-full bg-slate-950/80 p-3 rounded-2xl border border-slate-800 mb-4 modal-inner-box">
+                <div class="text-[11px] font-bold text-slate-300 mb-1.5 flex items-center justify-center gap-1">
+                    🏆 Submit to Leaderboard
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="playerNameInput" placeholder="Your Name" maxlength="20" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400">
+                    <button id="saveScoreBtn" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-1.5 rounded-xl text-xs transition shadow flex items-center gap-1 active:scale-95">
+                        Save
+                    </button>
+                </div>
+                <p id="saveScoreStatus" class="text-[10px] text-emerald-400 mt-1 hidden font-semibold"></p>
+            </div>
+
+            <div class="flex gap-2 w-full">
+                <button id="modalViewLeaderboard" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 rounded-xl transition text-xs border border-slate-700 active:scale-95">View Rankings</button>
+                <button id="modalRestart" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg text-xs active:scale-95">Play Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: LEADERBOARD -->
+    <div id="leaderboardModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl flex flex-col relative max-h-[85vh] modal-card-theme">
+            <button id="closeLeaderboardBtn" class="absolute top-4 right-4 text-slate-400 hover:text-white transition text-base w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-800 font-bold">✕</button>
+            
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-xl">🏆</span>
+                <h3 class="font-display text-lg font-bold text-amber-400">Top Leaderboard Scores</h3>
+            </div>
+            <p class="text-xs text-slate-400 mb-3">Highest ranked Wordle masters & solvers:</p>
+
+            <div class="flex-1 overflow-y-auto w-full bg-slate-950 border border-slate-800 rounded-2xl p-2 mb-3 modal-inner-box">
+                <div class="grid grid-cols-12 text-[11px] font-bold text-slate-400 pb-1.5 border-b border-slate-800 mb-1 px-1">
+                    <span class="col-span-2">#</span>
+                    <span class="col-span-5">Player</span>
+                    <span class="col-span-2 text-center">Wins</span>
+                    <span class="col-span-3 text-right">Points</span>
+                </div>
+                <div id="leaderboardRows" class="space-y-1 text-xs">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <button id="refreshLeaderboardBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 rounded-xl text-xs transition border border-slate-700 active:scale-95">
+                Refresh Scores
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: SETTINGS -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl flex flex-col relative modal-card-theme">
+            <button id="closeSettingsBtn" class="absolute top-4 right-4 text-slate-400 hover:text-white transition text-base w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-800 font-bold">✕</button>
+            
+            <h3 class="font-display text-lg font-bold text-cyan-400 mb-1 flex items-center gap-2">
+                <span>⚙️</span> Game Settings
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Customize your solving and interface experience.</p>
+
+            <div class="space-y-3 text-xs">
+                <!-- Timer Mode Setting (Off by default) -->
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 modal-inner-box">
+                    <div class="font-bold text-slate-200 mb-1 flex items-center justify-between">
+                        <span>Timer Mode</span>
+                        <span id="currentTimerModeBadge" class="text-[10px] text-amber-400 uppercase font-mono px-2 py-0.5 bg-amber-950/60 rounded border border-amber-500/30">Disabled</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mb-2.5">Challenge yourself against the clock.</p>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button onclick="setTimerMode('countdown')" class="timer-mode-btn bg-slate-800 text-slate-300 font-bold py-1.5 rounded-xl text-xs hover:bg-slate-700 transition" data-mode="countdown">2m Countdown</button>
+                        <button onclick="setTimerMode('stopwatch')" class="timer-mode-btn bg-slate-800 text-slate-300 font-bold py-1.5 rounded-xl text-xs hover:bg-slate-700 transition" data-mode="stopwatch">Stopwatch</button>
+                        <button onclick="setTimerMode('off')" class="timer-mode-btn bg-amber-600 text-slate-950 font-bold py-1.5 rounded-xl text-xs shadow" data-mode="off">Off</button>
+                    </div>
+                </div>
+
+                <!-- Theme Setting -->
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 modal-inner-box flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-slate-200">Theme Mode</div>
+                        <div id="themeStatusDesc" class="text-[11px] text-slate-400">Current: Dark Mode 🌙</div>
+                    </div>
+                    <button id="settingsThemeToggleBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl font-bold text-xs border border-slate-700 active:scale-95 transition flex items-center gap-1.5">
+                        <span id="settingsThemeBtnText">Switch to Light ☀️</span>
+                    </button>
+                </div>
+
+                <!-- Sound Effects Setting -->
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 modal-inner-box flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-slate-200">Sound Effects</div>
+                        <div class="text-[11px] text-slate-400">Key clicks & victory fanfares</div>
+                    </div>
+                    <button id="soundToggleBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl font-bold text-xs border border-slate-700 active:scale-95 transition">
+                        <span id="soundStatusText">Enabled 🔊</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: HELP / HOW TO PLAY -->
+    <div id="helpModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl flex flex-col relative modal-card-theme">
+            <button id="closeHelpBtn" class="absolute top-4 right-4 text-slate-400 hover:text-white transition text-base w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-800 font-bold">✕</button>
+            
+            <h3 class="font-display text-lg font-bold text-cyan-400 mb-1 flex items-center gap-2">
+                <span>❓</span> How to Play
+            </h3>
+            <p class="text-xs text-slate-400 mb-3">Master the Wordle grid and AI bot solver.</p>
+
+            <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 text-slate-300 text-xs text-center font-medium mb-3 shadow-inner">
+                Guess the hidden 5-letter word in 6 tries. Use the bot solver or hints if you need assistance.
+            </div>
+
+            <div class="space-y-2.5 text-xs">
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 modal-inner-box space-y-2">
+                    <div class="font-bold text-slate-200 text-xs">Tile Color Rules</div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded bg-emerald-600 font-mono font-bold text-white flex items-center justify-center text-xs shrink-0">W</div>
+                        <span class="text-[11px] text-slate-300"><strong>Green</strong>: Letter is correct and in the right spot.</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded bg-amber-600 font-mono font-bold text-white flex items-center justify-center text-xs shrink-0">I</div>
+                        <span class="text-[11px] text-slate-300"><strong>Yellow</strong>: Letter is in the word, wrong spot.</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded bg-slate-800 font-mono font-bold text-slate-400 flex items-center justify-center text-xs shrink-0">N</div>
+                        <span class="text-[11px] text-slate-300"><strong>Gray</strong>: Letter is not in the secret word.</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 modal-inner-box space-y-1.5">
+                    <div class="font-bold text-slate-200 text-xs">AI Assistant Features</div>
+                    <p class="text-[11px] text-slate-400">⚡ <strong>Solve Row</strong>: Suggests the optimal entropy guess.</p>
+                    <p class="text-[11px] text-slate-400">🤖 <strong>Bot Auto-Play</strong>: Solves any mystery or custom target.</p>
+                    <p class="text-[11px] text-slate-400">💡 <strong>Hint</strong>: Reveals an unsolved letter position.</p>
+                </div>
+            </div>
+
+            <button id="gotItHelpBtn" class="w-full mt-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded-xl text-xs transition shadow active:scale-95">
+                Got It!
+            </button>
+        </div>
+    </div>
+
+    <!-- ERROR POP-UP TOAST -->
+    <div id="errorToast" class="fixed top-14 left-1/2 -translate-x-1/2 bg-rose-600 border border-rose-400 text-white font-bold px-4 py-2 rounded-2xl shadow-2xl z-50 text-xs flex items-center gap-2 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
+        <span>⚠️</span>
+        <span id="errorToastText">All letters are already uncovered!</span>
+    </div>
+
+    <!-- MODAL: BOT AUTO-PLAY CONFIG -->
+    <div id="botConfigModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl flex flex-col items-center relative modal-card-theme">
+            <button id="closeBotConfigBtn" class="absolute top-4 right-4 text-slate-400 hover:text-white transition text-base w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-800 font-bold">✕</button>
+            <h3 class="font-display text-xl font-bold mb-1 text-cyan-400">Bot Auto-Play Setup</h3>
+            <p class="text-slate-400 text-xs mb-4">Choose how the bot solver should solve the game.</p>
+            
+            <div class="w-full space-y-3">
+                <!-- Random Word Option -->
+                <div class="bg-slate-800/50 p-3.5 rounded-2xl border border-slate-700/50 text-left modal-inner-box">
+                    <div class="text-xs font-bold text-slate-200 mb-1">Option A: Mystery Target</div>
+                    <p class="text-[11px] text-slate-400 mb-2">Bot picks a random secret word and solves it live.</p>
+                    <button id="playRandomBtn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded-xl transition shadow text-xs active:scale-95">
+                        Pick Random Secret Word
+                    </button>
+                </div>
+
+                <div class="relative flex py-0.5 items-center">
+                    <div class="flex-grow border-t border-slate-800"></div>
+                    <span class="flex-shrink-0 mx-3 text-slate-500 text-[10px] font-bold uppercase tracking-wider">OR</span>
+                    <div class="flex-grow border-t border-slate-800"></div>
+                </div>
+
+                <!-- Custom Word Option -->
+                <div class="bg-slate-800/50 p-3.5 rounded-2xl border border-slate-700/50 flex flex-col items-center modal-inner-box">
+                    <div class="text-xs font-bold text-slate-200 mb-1 text-center">Option B: Custom Word Challenge</div>
+                    <p class="text-[11px] text-slate-400 mb-2 text-center">Provide any 5-letter English word for the bot to solve.</p>
+                    <input type="text" id="customWordInput" maxlength="5" placeholder="CRANE" class="w-36 bg-slate-950 border-2 border-slate-700 rounded-xl text-center text-xl font-mono font-black uppercase text-white py-1.5 focus:border-emerald-500 focus:outline-none mb-1 tracking-widest placeholder-slate-600">
+                    <p id="customWordError" class="text-rose-400 text-[11px] h-4 mb-1 opacity-0 transition-opacity">Invalid 5-letter word.</p>
+                    <button id="playCustomBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition shadow text-xs active:scale-95">
+                        Solve Custom Word
+                    </button>
+                    
+                    <div id="customWordWarning" class="hidden w-full flex-col items-center gap-1.5 mt-1">
+                        <p class="text-[11px] text-amber-400 font-bold text-center">Word is in dictionary! Are you sure?</p>
+                        <div class="flex gap-2 w-full">
+                            <button id="proceedCustomBtn" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded-xl transition shadow text-[11px] active:scale-95">Proceed</button>
+                            <button id="changeCustomBtn" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-1.5 rounded-xl transition shadow text-[11px] active:scale-95">Change</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: STATISTICS -->
+    <div id="statsModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl flex flex-col items-center relative modal-card-theme">
+            <button id="closeStatsBtn" class="absolute top-4 right-4 text-slate-400 hover:text-white transition text-base w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-800 font-bold">✕</button>
+            <h3 class="font-display text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
+                <span>📊</span> Game Statistics
+            </h3>
+
+            <div class="grid grid-cols-4 gap-2 w-full mb-5 text-center">
+                <div class="bg-slate-950 p-2 rounded-2xl border border-slate-800 modal-inner-box">
+                    <div id="statPlayed" class="text-xl font-mono font-black text-white">0</div>
+                    <div class="text-[9px] text-slate-400 uppercase font-bold">Played</div>
+                </div>
+                <div id="statWinPctBox" class="bg-slate-950 p-2 rounded-2xl border border-slate-800 modal-inner-box">
+                    <div id="statWinPct" class="text-xl font-mono font-black text-emerald-400">0%</div>
+                    <div class="text-[9px] text-slate-400 uppercase font-bold">Win %</div>
+                </div>
+                <div class="bg-slate-950 p-2 rounded-2xl border border-slate-800 modal-inner-box">
+                    <div id="statStreak" class="text-xl font-mono font-black text-cyan-400">0</div>
+                    <div class="text-[9px] text-slate-400 uppercase font-bold">Streak</div>
+                </div>
+                <div class="bg-slate-950 p-2 rounded-2xl border border-slate-800 modal-inner-box">
+                    <div id="statMaxStreak" class="text-xl font-mono font-black text-amber-400">0</div>
+                    <div class="text-[9px] text-slate-400 uppercase font-bold">Max</div>
+                </div>
+            </div>
+
+            <h4 class="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider text-left w-full">Guess Distribution</h4>
+            <div id="guessDistributionContainer" class="w-full space-y-1.5 mb-5 text-xs">
+                <!-- Bars dynamically rendered by JS -->
+            </div>
+
+            <button id="resetStatsBtn" class="text-xs text-rose-400 hover:text-rose-300 underline transition">Reset Stats History</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC & CONTROLLERS -->
+    <script>
+        function getWordleUrl(path) {
+            const isMounted = window.location.pathname.includes('/wordle');
+            const cleanPath = path.startsWith('/') ? path : '/' + path;
+            return isMounted ? '/wordle' + cleanPath : cleanPath;
+        }
+
+        // Sound FX Synthesizer using Web Audio API
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = localStorage.getItem('wordle_sound_enabled') !== 'false';
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+            }
+            play(type) {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    if (type === 'key') {
+                        osc.frequency.setValueAtTime(320, now);
+                        gain.gain.setValueAtTime(0.04, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                        osc.start(now);
+                        osc.stop(now + 0.04);
+                    } else if (type === 'pop') {
+                        osc.frequency.setValueAtTime(450, now);
+                        gain.gain.setValueAtTime(0.06, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                        osc.start(now);
+                        osc.stop(now + 0.06);
+                    } else if (type === 'green') {
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(587.33, now);
+                        osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+                        gain.gain.setValueAtTime(0.08, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                        osc.start(now);
+                        osc.stop(now + 0.14);
+                    } else if (type === 'yellow') {
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(440, now);
+                        gain.gain.setValueAtTime(0.07, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                        osc.start(now);
+                        osc.stop(now + 0.12);
+                    } else if (type === 'gray') {
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(220, now);
+                        gain.gain.setValueAtTime(0.04, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                        osc.start(now);
+                        osc.stop(now + 0.08);
+                    } else if (type === 'win') {
+                        const notes = [523.25, 659.25, 783.99, 1046.50];
+                        notes.forEach((freq, idx) => {
+                            const o = this.ctx.createOscillator();
+                            const g = this.ctx.createGain();
+                            o.type = 'triangle';
+                            o.frequency.setValueAtTime(freq, now + idx * 0.1);
+                            g.gain.setValueAtTime(0.09, now + idx * 0.1);
+                            g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.3);
+                            o.connect(g);
+                            g.connect(this.ctx.destination);
+                            o.start(now + idx * 0.1);
+                            o.stop(now + idx * 0.1 + 0.3);
+                        });
+                    } else if (type === 'lose') {
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(220, now);
+                        osc.frequency.exponentialRampToValueAtTime(110, now + 0.35);
+                        gain.gain.setValueAtTime(0.08, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                        osc.start(now);
+                        osc.stop(now + 0.35);
+                    }
+                } catch(e) {}
+            }
+            toggle() {
+                this.enabled = !this.enabled;
+                localStorage.setItem('wordle_sound_enabled', this.enabled ? 'true' : 'false');
+                return this.enabled;
+            }
+        }
+        const soundFx = new SoundEngine();
+
+        // Fallback Dictionary
+        const DICTIONARY = [
+            "ABOUT", "ABOVE", "ABUSE", "ACTOR", "ACUTE", "ADMIT", "ADOPT", "ADULT", "AFTER", "AGAIN",
+            "AGENT", "AGREE", "AHEAD", "ALARM", "ALBUM", "ALERT", "ALIEN", "ALIGN", "ALIKE", "ALIVE",
+            "ALLOW", "ALONE", "ALONG", "ALTER", "AMONG", "ANGER", "ANGLE", "ANGRY", "APART", "APPLE",
+            "APPLY", "ARENA", "ARGUE", "ARISE", "ARRAY", "ASIDE", "ASSET", "AUDIO", "AUDIT", "AVOID",
+            "AWARD", "AWARE", "BADLY", "BAKER", "BASES", "BASIC", "BASIS", "BEACH", "BEGAN", "BEGIN",
+            "BEGUN", "BEING", "BELOW", "BENCH", "BILLY", "BIRTH", "BLACK", "BLAME", "BLIND", "BLOCK",
+            "BLOOD", "BOARD", "BOOST", "BOOTH", "BOUND", "BRAIN", "BRAND", "BREAD", "BREAK", "BREED",
+            "BRIEF", "BRING", "BROAD", "BROKE", "BROWN", "BUILD", "BUILT", "BUYER", "CABLE", "CALIF",
+            "CARRY", "CATCH", "CAUSE", "CHAIN", "CHAIR", "CHART", "CHASE", "CHEAP", "CHECK", "CHEST",
+            "CHIEF", "CHILD", "CHINA", "CHOSE", "CIVIL", "CLAIM", "CLASS", "CLEAN", "CLEAR", "CLICK",
+            "CLOCK", "CLOSE", "COACH", "COAST", "COULD", "COUNT", "COURT", "COVER", "CRAFT", "CRASH",
+            "CREAM", "CRIME", "CROSS", "CROWD", "CROWN", "CRUCIAL", "CRUDE", "CYCLE", "DAILY", "DANCE",
+            "DATED", "DEALT", "DEATH", "DEBUT", "DELAY", "DEPTH", "DOING", "DOUBT", "DOZEN", "DRAFT",
+            "DRAMA", "DRAWN", "DREAM", "DRESS", "DRINK", "DRIVE", "DROVE", "DYING", "EAGER", "EARLY",
+            "EARTH", "EIGHT", "ELITE", "EMPTY", "ENEMY", "ENJOY", "ENTER", "ENTRY", "EQUAL", "ERROR",
+            "EVENT", "EVERY", "EXACT", "EXIST", "EXTRA", "FAITH", "FALSE", "FAULT", "FIBER", "FIELD",
+            "FIFTH", "FIFTY", "FIGHT", "FINAL", "FIRST", "FIXED", "FLASH", "FLEET", "FLOOR", "FLUID",
+            "FOCUS", "FORCE", "FORTH", "FORTY", "FORUM", "FOUND", "FRAME", "FRANK", "FRAUD", "FRESH",
+            "FRONT", "FRUIT", "FULLY", "FUNNY", "GIANT", "GIVEN", "GLASS", "GLOBE", "GOING", "GRACE",
+            "GRADE", "GRAND", "GRANT", "GRASS", "GREAT", "GREEN", "GROSS", "GROUP", "GROWN", "GUARD",
+            "GUESS", "GUEST", "GUIDE", "HAPPY", "HARRY", "HEART", "HEAVY", "HENCE", "HORSE", "HOTEL",
+            "HOUSE", "HUMAN", "IDEAL", "IMAGE", "INDEX", "INNER", "INPUT", "ISSUE", "JAPAN", "JIMMY",
+            "JOINT", "JONES", "JUDGE", "KNOWN", "LABEL", "LARGE", "LASER", "LATER", "LAUGH", "LAYER",
+            "LEARN", "LEASE", "LEAST", "LEAVE", "LEGAL", "LEVEL", "LEWIS", "LIGHT", "LIMIT", "LINKS",
+            "LIVES", "LOCAL", "LOGIC", "LOOSE", "LOWER", "LUCKY", "LUNCH", "MAGIC", "MAJOR", "MAKER",
+            "MARCH", "MATCH", "MAYOR", "MEANT", "MEDIA", "METAL", "MIGHT", "MINOR", "MINUS", "MODEL",
+            "MONEY", "MONTH", "MORAL", "MOTOR", "MOUNT", "MOUSE", "MOUTH", "MOVIE", "MUSIC", "NEEDS",
+            "NEVER", "NEWLY", "NIGHT", "NOISE", "NORTH", "NOTED", "NOVEL", "NURSE", "OCCUR", "OCEAN",
+            "OFFER", "OFTEN", "ORDER", "OTHER", "OUGHT", "PAINT", "PANEL", "PAPER", "PARTY", "PEACE",
+            "PETER", "PHASE", "PHONE", "PHOTO", "PIECE", "PILOT", "PITCH", "PLACE", "PLAIN", "PLANE",
+            "PLANT", "PLATE", "POINT", "POUND", "POWER", "PRESS", "PRICE", "PRIDE", "PRIME", "PRINT",
+            "PRIOR", "PRIZE", "PROOF", "PROUD", "PROVE", "QUEEN", "QUICK", "QUIET", "QUITE", "RADIO",
+            "RAISE", "RANGE", "RAPID", "RATIO", "REACH", "READY", "REFER", "RIGHT", "RIVAL", "RIVER",
+            "ROBIN", "ROGER", "ROMAN", "ROUGH", "ROUND", "ROUTE", "ROYAL", "RURAL", "SCALE", "SCENE",
+            "SCOPE", "SCORE", "SENSE", "SERVE", "SEVEN", "SHALL", "SHAPE", "SHARE", "SHARP", "SHEET",
+            "SHELF", "SHELL", "SHIFT", "SHIRT", "SHOCK", "SHOOT", "SHORT", "SHOWN", "SIGHT", "SINCE",
+            "SIXTH", "SIXTY", "SIZED", "SKILL", "SLEEP", "SLIDE", "SMALL", "SMART", "SMILE", "SMITH",
+            "SMOKE", "SOLID", "SOLVE", "SORRY", "SOUND", "SOUTH", "SPACE", "SPARE", "SPEAK", "SPEED",
+            "SPEND", "SPENT", "SPLIT", "SPOKE", "SPORT", "STAFF", "STAGE", "STAKE", "STAND", "START",
+            "STATE", "STEAM", "STEEL", "STICK", "STILL", "STOCK", "STONE", "STOOD", "STORE", "STORM",
+            "STORY", "STRIP", "STUCK", "STUDY", "STUFF", "STYLE", "SUGAR", "SUITE", "SUPER", "SWEET",
+            "TABLE", "TAKEN", "TASTE", "TAXES", "TEACH", "TEETH", "TEXAS", "THANK", "THEIR", "THEME",
+            "THERE", "THESE", "THICK", "THING", "THINK", "THIRD", "THOSE", "THREE", "THREW", "THROW",
+            "TIGHT", "TIMES", "TIRED", "TITLE", "TODAY", "TOPIC", "TOTAL", "TOUCH", "TOUGH", "TOWER",
+            "TRACK", "TRADE", "TRAIN", "TREAT", "TREND", "TRIAL", "TRIED", "TRIES", "TRUCK", "TRULY",
+            "TRUST", "TRUTH", "TWICE", "UNDER", "UNDUE", "UNION", "UNITY", "UNTIL", "UPPER", "UPSET",
+            "URBAN", "USAGE", "USUAL", "VALID", "VALUE", "VIDEO", "VIRUS", "VISIT", "VITAL", "VOICE",
+            "WASTE", "WATCH", "WATER", "WHEEL", "WHERE", "WHICH", "WHILE", "WHITE", "WHOLE", "WHOSE",
+            "WOMAN", "WOMEN", "WORLD", "WORRY", "WORSE", "WORST", "WORTH", "WOULD", "WOUND", "WRITE",
+            "WRONG", "WROTE", "YOUTH", "CRANE", "TRACE", "SLATE", "AUDIO", "STARE", "ADIEU", "ROAST"
+        ];
+
+        let targetWords = [...DICTIONARY];
+        let validWords = [...DICTIONARY];
+        let targetWord = "";
+        let currentRow = 0;
+        let currentCol = 0;
+        let boardState = Array(6).fill().map(() => Array(5).fill(''));
+        let boardStatuses = Array(6).fill().map(() => Array(5).fill(''));
+        let isGameOver = false;
+
+        // Hint & Timer state (Timer OFF by default)
+        let hintUsed = false;
+        let hintPenalty = 0;
+        let timerMode = 'off';
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let timerRunning = false;
+        let gameScore = 0;
+        let isBotRunning = false;
+        let botInterval = null;
+        let keyStates = {};
+        let bannedWords = []; 
+
+        const keys = [
+            ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+            ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+            ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "BACK"]
+        ];
+
+        // Confetti Canvas System
+        const confettiCanvas = document.getElementById('confettiCanvas');
+        const ctx = confettiCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function triggerConfetti() {
+            particles = [];
+            const colors = ['#10b981', '#06b6d4', '#f59e0b', '#ec4899', '#8b5cf6', '#38bdf8'];
+            for (let i = 0; i < 110; i++) {
+                particles.push({
+                    x: confettiCanvas.width / 2,
+                    y: confettiCanvas.height / 2,
+                    vx: (Math.random() - 0.5) * 18,
+                    vy: (Math.random() - 0.75) * 18,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 8 + 4,
+                    rotation: Math.random() * 360,
+                    rotSpeed: (Math.random() - 0.5) * 12,
+                    opacity: 1
+                });
+            }
+            requestAnimationFrame(updateConfetti);
+        }
+
+        function updateConfetti() {
+            ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            let alive = false;
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.38;
+                p.opacity -= 0.011;
+                p.rotation += p.rotSpeed;
+
+                if (p.opacity > 0) {
+                    alive = true;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.rotation * Math.PI) / 180);
+                    ctx.globalAlpha = Math.max(0, p.opacity);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+                }
+            });
+            if (alive) requestAnimationFrame(updateConfetti);
+        }
+
+        // Stats Engine
+        function getStats() {
+            const defaultStats = { played: 0, wins: 0, streak: 0, maxStreak: 0, distribution: [0,0,0,0,0,0] };
+            try {
+                const stored = localStorage.getItem('wordle_bot_stats');
+                return stored ? JSON.parse(stored) : defaultStats;
+            } catch(e) {
+                return defaultStats;
+            }
+        }
+
+        function saveStats(won, guessCount) {
+            let stats = getStats();
+            stats.played++;
+            if (won) {
+                stats.wins++;
+                stats.streak++;
+                if (stats.streak > stats.maxStreak) stats.maxStreak = stats.streak;
+                if (guessCount >= 1 && guessCount <= 6) {
+                    stats.distribution[guessCount - 1]++;
+                }
+            } else {
+                stats.streak = 0;
+            }
+            try {
+                localStorage.setItem('wordle_bot_stats', JSON.stringify(stats));
+            } catch(e) {}
+        }
+
+        // Timer Engine
+        function formatTime(totalSecs) {
+            const m = Math.floor(Math.abs(totalSecs) / 60).toString().padStart(2, '0');
+            const s = (Math.abs(totalSecs) % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function updateTimerUI() {
+            const timerEl = document.getElementById('timerDisplay');
+            const container = document.getElementById('timerContainer');
+            if (!container || !timerEl) return;
+
+            if (timerMode === 'off') {
+                container.classList.add('hidden');
+                container.classList.remove('flex');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            container.classList.add('flex');
+            timerEl.textContent = formatTime(timerSeconds);
+
+            if (timerMode === 'countdown' && timerSeconds <= 20) {
+                timerEl.className = 'text-rose-400 font-bold animate-pulse';
+            } else {
+                timerEl.className = 'text-amber-300 font-bold';
+            }
+        }
+
+        function startTimer() {
+            if (timerRunning || timerMode === 'off' || isGameOver) return;
+            timerRunning = true;
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (isGameOver) {
+                    stopTimer();
+                    return;
+                }
+                if (timerMode === 'countdown') {
+                    timerSeconds--;
+                    updateTimerUI();
+                    if (timerSeconds <= 0) {
+                        stopTimer();
+                        setMessage("⏰ Time's up! Game over.", "text-rose-400");
+                        endGame(false);
+                    }
+                } else if (timerMode === 'stopwatch') {
+                    timerSeconds++;
+                    updateTimerUI();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+            timerRunning = false;
+        }
+
+        function resetTimer() {
+            stopTimer();
+            timerSeconds = (timerMode === 'countdown') ? 120 : 0;
+            updateTimerUI();
+        }
+
+        function setTimerMode(mode) {
+            timerMode = mode;
+            try { localStorage.setItem('wordle_timer_mode', mode); } catch(e){}
+            
+            document.querySelectorAll('.timer-mode-btn').forEach(btn => {
+                if (btn.dataset.mode === mode) {
+                    btn.className = 'timer-mode-btn bg-amber-600 text-slate-950 font-bold py-1.5 rounded-xl text-xs shadow';
+                } else {
+                    btn.className = 'timer-mode-btn bg-slate-800 text-slate-300 font-bold py-1.5 rounded-xl text-xs hover:bg-slate-700';
+                }
+            });
+
+            const badge = document.getElementById('currentTimerModeBadge');
+            if (badge) {
+                badge.textContent = mode === 'countdown' ? 'Countdown (2m)' : (mode === 'stopwatch' ? 'Stopwatch' : 'Disabled');
+            }
+            resetTimer();
+        }
+
+        // Floating Error Pop-up Toast
+        function showErrorToast(msg = "All letters are already uncovered!") {
+            const toast = document.getElementById('errorToast');
+            const textEl = document.getElementById('errorToastText');
+            if (!toast) return;
+            if (textEl) textEl.textContent = msg;
+            
+            toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+            }, 2500);
+        }
+
+        // Hint Engine - Reveals a yellow letter, or pops up error if all are uncovered
+        function requestHint() {
+            if (isGameOver || isBotRunning) return;
+
+            const targetLetters = Array.from(new Set(targetWord.split('')));
+            const uncoveredLetters = targetLetters.filter(ch => keyStates[ch] !== 'correct' && keyStates[ch] !== 'present');
+
+            if (uncoveredLetters.length === 0) {
+                showErrorToast("All letters are already uncovered!");
+                setMessage("Error: All letters are already uncovered!", "text-rose-400");
+                soundFx.play('lose');
+                const btn = document.getElementById('hintBtn');
+                if (btn) {
+                    btn.classList.add('row-shake');
+                    setTimeout(() => btn.classList.remove('row-shake'), 400);
+                }
+                return;
+            }
+
+            const hintChar = uncoveredLetters[Math.floor(Math.random() * uncoveredLetters.length)];
+            keyStates[hintChar] = 'present';
+            updateKeyboardUI();
+
+            hintUsed = true;
+            hintPenalty += 10;
+
+            soundFx.play('yellow');
+            setMessage(`💡 HINT: Revealed letter "${hintChar}" as yellow!`, "text-amber-400");
+
+            const keyEl = document.getElementById(`key-${hintChar}`);
+            if (keyEl) {
+                keyEl.classList.add('tile-pop');
+                setTimeout(() => keyEl.classList.remove('tile-pop'), 250);
+            }
+        }
+
+        // Leaderboard API
+        async function fetchLeaderboard() {
+            const rowsContainer = document.getElementById('leaderboardRows');
+            rowsContainer.innerHTML = '<div class="text-slate-500 py-3 text-center text-xs">Loading leaderboard...</div>';
+            try {
+                const res = await fetch(getWordleUrl('/leaderboard'));
+                if (res.ok) {
+                    const data = await res.json();
+                    const list = data.leaderboard || [];
+                    if (list.length === 0) {
+                        rowsContainer.innerHTML = '<div class="text-slate-500 py-3 text-center text-xs">No recorded scores yet. Be the first!</div>';
+                        return;
+                    }
+                    rowsContainer.innerHTML = '';
+                    list.forEach((entry, idx) => {
+                        const rankMedal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
+                        const row = document.createElement('div');
+                        row.className = `grid grid-cols-12 items-center p-2 rounded-xl ${idx < 3 ? 'bg-slate-900/80 border border-amber-500/20 shadow-sm' : 'bg-slate-900/40'} text-slate-200`;
+                        row.innerHTML = `
+                            <span class="col-span-2 font-black ${idx === 0 ? 'text-amber-400' : 'text-slate-400'}">${rankMedal}</span>
+                            <span class="col-span-5 font-bold truncate">${entry.name || 'Anonymous'}</span>
+                            <span class="col-span-2 text-center text-cyan-300 font-mono">${entry.wins || 0}</span>
+                            <span class="col-span-3 text-right text-emerald-400 font-mono font-bold">${entry.points || 0}</span>
+                        `;
+                        rowsContainer.appendChild(row);
+                    });
+                }
+            } catch (err) {
+                rowsContainer.innerHTML = '<div class="text-rose-400 py-3 text-center text-xs">Failed to load leaderboard.</div>';
+            }
+        }
+
+        async function submitScore() {
+            const nameInput = document.getElementById('playerNameInput');
+            const statusEl = document.getElementById('saveScoreStatus');
+            const saveBtn = document.getElementById('saveScoreBtn');
+            const name = nameInput.value.trim() || 'Anonymous';
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            const stats = getStats();
+            try {
+                const res = await fetch(getWordleUrl('/save-score'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        wins: stats.wins || 1,
+                        points: gameScore
+                    })
+                });
+
+                if (res.ok) {
+                    statusEl.textContent = '✓ Score saved to leaderboard!';
+                    statusEl.className = 'text-[10px] text-emerald-400 mt-1 block font-semibold';
+                    saveBtn.textContent = 'Saved';
+                    fetchLeaderboard();
+                } else {
+                    statusEl.textContent = 'Failed to save score.';
+                    statusEl.className = 'text-[10px] text-rose-400 mt-1 block font-semibold';
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Retry';
+                }
+            } catch (err) {
+                statusEl.textContent = 'Error connecting to server.';
+                statusEl.className = 'text-[10px] text-rose-400 mt-1 block font-semibold';
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Retry';
+            }
+        }
+
+        // Element Selectors
+        const boardEl = document.getElementById('board');
+        const messageBox = document.getElementById('messageBox');
+        const solveRowBtn = document.getElementById('solveRowBtn');
+        const botPlayBtn = document.getElementById('botPlayBtn');
+        const candidateNumber = document.getElementById('candidateNumber');
+        const candidateNumberMobile = document.getElementById('candidateNumberMobile');
+        const quickRestartBtn = document.getElementById('quickRestartBtn');
+        
+        // Modals
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalIcon = document.getElementById('modalIcon');
+        const targetWordDisplay = document.getElementById('targetWordDisplay');
+        const modalRestart = document.getElementById('modalRestart');
+        const modalGuessesCount = document.getElementById('modalGuessesCount');
+        const modalPointsEarned = document.getElementById('modalPointsEarned');
+        const modalWinRate = document.getElementById('modalWinRate');
+        const modalViewLeaderboard = document.getElementById('modalViewLeaderboard');
+        const leaderboardSaveSection = document.getElementById('leaderboardSaveSection');
+        
+        const leaderboardModal = document.getElementById('leaderboardModal');
+        const leaderboardBtn = document.getElementById('leaderboardBtn');
+        const closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
+        const refreshLeaderboardBtn = document.getElementById('refreshLeaderboardBtn');
+        const saveScoreBtn = document.getElementById('saveScoreBtn');
+
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+
+        const botConfigModal = document.getElementById('botConfigModal');
+        const closeBotConfigBtn = document.getElementById('closeBotConfigBtn');
+        const playRandomBtn = document.getElementById('playRandomBtn');
+        const customWordInput = document.getElementById('customWordInput');
+        const playCustomBtn = document.getElementById('playCustomBtn');
+        const customWordError = document.getElementById('customWordError');
+        const customWordWarning = document.getElementById('customWordWarning');
+        const proceedCustomBtn = document.getElementById('proceedCustomBtn');
+        const changeCustomBtn = document.getElementById('changeCustomBtn');
+
+        const statsModal = document.getElementById('statsModal');
+        const statsBtn = document.getElementById('statsBtn');
+        const closeStatsBtn = document.getElementById('closeStatsBtn');
+        const resetStatsBtn = document.getElementById('resetStatsBtn');
+
+        const hintBtn = document.getElementById('hintBtn');
+        const helpBtn = document.getElementById('helpBtn');
+        const helpModal = document.getElementById('helpModal');
+        const closeHelpBtn = document.getElementById('closeHelpBtn');
+        const gotItHelpBtn = document.getElementById('gotItHelpBtn');
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+        const soundStatusText = document.getElementById('soundStatusText');
+
+        if (soundToggleBtn) {
+            soundToggleBtn.onclick = () => {
+                const enabled = soundFx.toggle();
+                if (soundStatusText) soundStatusText.textContent = enabled ? 'Enabled 🔊' : 'Disabled 🔇';
+            };
+        }
+
+        customWordInput.addEventListener('input', () => {
+            customWordError.classList.replace('opacity-100', 'opacity-0');
+            if (playCustomBtn.classList.contains('hidden')) {
+                playCustomBtn.classList.remove('hidden');
+                customWordWarning.classList.add('hidden');
+                customWordWarning.classList.remove('flex');
+            }
+        });
+
+        async function loadDatasetsFromAPI() {
+            try {
+                const [tRes, dRes] = await Promise.all([
+                    fetch(getWordleUrl('/api/wordle/targets')),
+                    fetch(getWordleUrl('/api/wordle/dictionary'))
+                ]);
+                if (tRes.ok) {
+                    const tData = await tRes.json();
+                    if (tData.words && tData.words.length > 0) {
+                        targetWords = tData.words;
+                    }
+                }
+                if (dRes.ok) {
+                    const dData = await dRes.json();
+                    if (dData.words && dData.words.length > 0) {
+                        validWords = [...dData.words];
+                    }
+                }
+                updateCandidateCounter();
+            } catch(e) {}
+        }
+
+        function initGame(presetWord = null) {
+            const pool = (targetWords && targetWords.length > 0) ? targetWords : DICTIONARY;
+            let randomWord = pool[Math.floor(Math.random() * pool.length)];
+            while (randomWord === "TRACE" || randomWord === "LIONS") {
+                randomWord = pool[Math.floor(Math.random() * pool.length)];
+            }
+            
+            targetWord = presetWord ? presetWord.toUpperCase() : randomWord;
+            currentRow = 0;
+            currentCol = 0;
+            boardState = Array(6).fill().map(() => Array(5).fill(''));
+            boardStatuses = Array(6).fill().map(() => Array(5).fill(''));
+            isGameOver = false;
+            hintUsed = false;
+            hintPenalty = 0;
+            gameScore = 0;
+            stopBot();
+            resetTimer();
+            keyStates = {};
+            bannedWords = [];
+            
+            hintBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            modalOverlay.classList.remove('flex');
+            modalOverlay.classList.add('hidden');
+            leaderboardModal.classList.remove('flex');
+            leaderboardModal.classList.add('hidden');
+            settingsModal.classList.remove('flex');
+            settingsModal.classList.add('hidden');
+            botConfigModal.classList.remove('flex');
+            botConfigModal.classList.add('hidden');
+            statsModal.classList.remove('flex');
+            statsModal.classList.add('hidden');
+            if (helpModal) {
+                helpModal.classList.remove('flex');
+                helpModal.classList.add('hidden');
+            }
+            
+            document.getElementById('saveScoreStatus').classList.add('hidden');
+            document.getElementById('saveScoreBtn').disabled = false;
+            document.getElementById('saveScoreBtn').textContent = 'Save';
+
+            createBoardUI();
+            createKeyboardUI();
+            setMessage("");
+            updateButtons();
+            updateCandidateCounter();
+        }
+
+        function createBoardUI() {
+            boardEl.innerHTML = '';
+            for (let r = 0; r < 6; r++) {
+                const rowEl = document.createElement('div');
+                rowEl.id = `row-${r}`;
+                rowEl.className = 'grid grid-cols-5 gap-1.5';
+                for (let c = 0; c < 5; c++) {
+                    const tile = document.createElement('div');
+                    tile.id = `tile-${r}-${c}`;
+                    tile.className = 'board-tile bg-slate-900 border-2 border-slate-700/80 rounded-md flex items-center justify-center text-2xl sm:text-3xl font-mono font-black uppercase text-white transition-all shadow-inner tile-empty tile-3d';
+                    rowEl.appendChild(tile);
+                }
+                boardEl.appendChild(rowEl);
+            }
+        }
+
+        function createKeyboardUI() {
+            ['row1', 'row2', 'row3'].forEach((rowId, index) => {
+                const rowEl = document.getElementById(rowId);
+                rowEl.innerHTML = '';
+                keys[index].forEach(key => {
+                    const btn = document.createElement('button');
+                    btn.id = `key-${key}`;
+                    const isSpecial = (key === 'ENTER' || key === 'BACK');
+                    btn.textContent = key === 'BACK' ? '⌫' : (key === 'ENTER' ? 'ENTER' : key);
+                    if (key === 'ENTER') btn.setAttribute('aria-label', 'Enter');
+                    if (key === 'BACK') btn.setAttribute('aria-label', 'Backspace');
+                    
+                    btn.className = `h-14 font-sans font-bold rounded-md bg-slate-700 hover:bg-slate-600 text-white transition cursor-pointer flex items-center justify-center active:scale-95 key-default shadow-sm ${isSpecial ? 'px-3.5 flex-[1.5] text-xs' : 'flex-1 text-base'}`;
+                    btn.onclick = () => handleKeyPress(key);
+                    rowEl.appendChild(btn);
+                });
+            });
+        }
+
+        function updateBoardUI() {
+            for (let r = 0; r < 6; r++) {
+                for (let c = 0; c < 5; c++) {
+                    const tile = document.getElementById(`tile-${r}-${c}`);
+                    const char = boardState[r][c];
+                    tile.textContent = char;
+                    if (char !== '') {
+                        if (!tile.classList.contains('tile-pop') && r === currentRow && c === currentCol - 1) {
+                            tile.classList.add('tile-pop');
+                            soundFx.play('pop');
+                            setTimeout(() => tile.classList.remove('tile-pop'), 140);
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateKeyboardUI() {
+            for (let key in keyStates) {
+                const btn = document.getElementById(`key-${key}`);
+                if (btn) {
+                    btn.classList.remove('bg-slate-700', 'hover:bg-slate-600', 'bg-emerald-600', 'bg-amber-600', 'bg-slate-900', 'text-slate-500');
+                    if (keyStates[key] === 'correct') {
+                        btn.classList.add('bg-emerald-600', 'text-white');
+                    } else if (keyStates[key] === 'present') {
+                        btn.classList.add('bg-amber-600', 'text-white');
+                    } else if (keyStates[key] === 'absent') {
+                        btn.classList.add('bg-slate-900', 'text-slate-500');
+                    }
+                }
+            }
+        }
+
+        function handleKeyPress(key) {
+            if (isGameOver || isBotRunning) return;
+
+            startTimer();
+
+            if (key === 'BACK') {
+                if (currentCol > 0) {
+                    currentCol--;
+                    boardState[currentRow][currentCol] = '';
+                    updateBoardUI();
+                    soundFx.play('key');
+                    setMessage("");
+                }
+            } else if (key === 'ENTER') {
+                if (currentCol < 5) {
+                    triggerRowShake(currentRow);
+                    setMessage("Not enough letters!", "text-amber-400");
+                    soundFx.play('lose');
+                    return;
+                }
+                submitCurrentRow();
+            } else {
+                if (currentCol < 5) {
+                    boardState[currentRow][currentCol] = key;
+                    currentCol++;
+                    updateBoardUI();
+                    soundFx.play('key');
+
+                    if (currentCol === 5) {
+                        const guess = boardState[currentRow].join('');
+                        if (!validWords.includes(guess)) {
+                            setMessage("Not in dictionary!", "text-rose-400");
+                        } else {
+                            setMessage("Press Enter to submit guess!", "text-emerald-400");
+                        }
+                    }
+                }
+            }
+        }
+
+        function triggerRowShake(row) {
+            const rowEl = document.getElementById(`row-${row}`);
+            if (rowEl) {
+                rowEl.classList.add('row-shake');
+                setTimeout(() => rowEl.classList.remove('row-shake'), 400);
+            }
+        }
+
+        function submitCurrentRow() {
+            const guess = boardState[currentRow].join('');
+            if (!validWords.includes(guess)) {
+                triggerRowShake(currentRow);
+                setMessage("Not in dictionary!", "text-rose-400");
+                soundFx.play('lose');
+                return;
+            }
+
+            isBotRunning = true;
+            revealRow(currentRow, guess, () => {
+                isBotRunning = false;
+                if (guess === targetWord) {
+                    endGame(true);
+                } else if (currentRow === 5) {
+                    endGame(false);
+                } else {
+                    currentRow++;
+                    currentCol = 0;
+                    setMessage("");
+                    updateButtons();
+                    updateCandidateCounter();
+                }
+            });
+        }
+
+        function revealRow(row, guess, callback) {
+            let targetArr = targetWord.split('');
+            let guessArr = guess.split('');
+            let statuses = Array(5).fill('absent');
+
+            // 1. Correct (Green)
+            for (let i = 0; i < 5; i++) {
+                if (guessArr[i] === targetArr[i]) {
+                    statuses[i] = 'correct';
+                    targetArr[i] = null;
+                    guessArr[i] = null;
+                }
+            }
+
+            // 2. Present (Yellow)
+            for (let i = 0; i < 5; i++) {
+                if (guessArr[i] !== null) {
+                    let index = targetArr.indexOf(guessArr[i]);
+                    if (index !== -1) {
+                        statuses[i] = 'present';
+                        targetArr[index] = null;
+                    }
+                }
+            }
+
+            boardStatuses[row] = [...statuses];
+
+            // Progressive 3D Flip
+            for (let i = 0; i < 5; i++) {
+                const tile = document.getElementById(`tile-${row}-${i}`);
+                const letter = guess[i];
+
+                if (statuses[i] === 'correct') keyStates[letter] = 'correct';
+                else if (statuses[i] === 'present' && keyStates[letter] !== 'correct') keyStates[letter] = 'present';
+                else if (statuses[i] === 'absent' && !keyStates[letter]) keyStates[letter] = 'absent';
+
+                setTimeout(() => {
+                    tile.classList.add('tile-flip');
+                    soundFx.play(statuses[i] === 'correct' ? 'green' : (statuses[i] === 'present' ? 'yellow' : 'gray'));
+                    
+                    setTimeout(() => {
+                        tile.classList.remove('tile-flip');
+                        if (statuses[i] === 'correct') {
+                            tile.className = 'board-tile bg-emerald-600 border-2 border-emerald-500 rounded-md flex items-center justify-center text-3xl font-mono font-black uppercase text-white shadow-lg tile-3d';
+                        } else if (statuses[i] === 'present') {
+                            tile.className = 'board-tile bg-amber-600 border-2 border-amber-500 rounded-md flex items-center justify-center text-3xl font-mono font-black uppercase text-white shadow-lg tile-3d';
+                        } else {
+                            tile.className = 'board-tile bg-slate-900 border-2 border-slate-800 rounded-md flex items-center justify-center text-3xl font-mono font-black uppercase text-slate-400 shadow-inner tile-3d';
+                        }
+                    }, 275);
+                }, i * 180);
+            }
+
+            setTimeout(() => {
+                updateKeyboardUI();
+                callback();
+            }, 1100);
+        }
+
+        // Bot Solver Filtering
+        function getFilteredCandidates() {
+            return validWords.filter(word => {
+                if (bannedWords.includes(word)) return false;
+
+                for (let r = 0; r < currentRow; r++) {
+                    const gWord = boardState[r].join('');
+                    const statuses = boardStatuses[r];
+
+                    const wordCharCounts = {};
+                    for (let i = 0; i < 5; i++) {
+                        wordCharCounts[word[i]] = (wordCharCounts[word[i]] || 0) + 1;
+                    }
+
+                    // 1. Positional checks
+                    for (let i = 0; i < 5; i++) {
+                        const gChar = gWord[i];
+                        const st = statuses[i];
+
+                        if (st === 'correct') {
+                            if (word[i] !== gChar) return false;
+                        } else if (st === 'present') {
+                            if (word[i] === gChar) return false;
+                        } else if (st === 'absent') {
+                            if (word[i] === gChar) return false;
+                        }
+                    }
+
+                    // 2. Frequency checks
+                    const guessCharStats = {};
+                    for (let i = 0; i < 5; i++) {
+                        const gChar = gWord[i];
+                        const st = statuses[i];
+                        if (!guessCharStats[gChar]) {
+                            guessCharStats[gChar] = { min: 0, exact: false };
+                        }
+                        if (st === 'correct' || st === 'present') {
+                            guessCharStats[gChar].min += 1;
+                        } else if (st === 'absent') {
+                            guessCharStats[gChar].exact = true;
+                        }
+                    }
+
+                    for (const char in guessCharStats) {
+                        const stat = guessCharStats[char];
+                        const cCount = wordCharCounts[char] || 0;
+                        if (stat.exact) {
+                            if (cCount !== stat.min) return false;
+                        } else {
+                            if (cCount < stat.min) return false;
+                        }
+                    }
+                }
+                return true;
+            });
+        }
+
+        function getBestBotGuess() {
+            if (botInterval !== null) {
+                if (currentRow === 0) return "TRACE";
+                if (currentRow === 1) {
+                    const firstRowStatuses = boardStatuses[0] || [];
+                    const matchCount = firstRowStatuses.filter(st => st === 'correct' || st === 'present').length;
+                    if (matchCount < 3) {
+                        return "LIONS";
+                    }
+                }
+            }
+            
+            const candidates = getFilteredCandidates();
+            if (candidates.length === 0) return validWords[Math.floor(Math.random() * validWords.length)];
+            if (candidates.length === 1) return candidates[0];
+
+            const letterFreq = {};
+            candidates.forEach(word => {
+                const uniqueChars = new Set(word.split(''));
+                uniqueChars.forEach(ch => {
+                    letterFreq[ch] = (letterFreq[ch] || 0) + 1;
+                });
+            });
+
+            let bestWord = candidates[0];
+            let bestScore = -1;
+
+            candidates.forEach(word => {
+                const uniqueChars = new Set(word.split(''));
+                let score = 0;
+                uniqueChars.forEach(ch => {
+                    score += letterFreq[ch] || 0;
+                });
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestWord = word;
+                }
+            });
+
+            return bestWord;
+        }
+
+        function updateCandidateCounter() {
+            const candidates = getFilteredCandidates();
+            const formatted = candidates.length.toLocaleString().replace(/,/g, ' ');
+            if (candidateNumber) candidateNumber.textContent = formatted;
+            if (candidateNumberMobile) candidateNumberMobile.textContent = formatted;
+        }
+
+        function solveNextRow() {
+            if (isGameOver || isBotRunning) return;
+            startTimer();
+            isBotRunning = true;
+            updateButtons();
+            setMessage("Bot calculating highest entropy guess...", "text-cyan-400");
+
+            setTimeout(() => {
+                let chosenWord = getBestBotGuess();
+                for (let i = 0; i < 5; i++) {
+                    boardState[currentRow][i] = chosenWord[i];
+                }
+                currentCol = 5;
+                updateBoardUI();
+
+                setTimeout(() => {
+                    if (!validWords.includes(chosenWord)) {
+                        bannedWords.push(chosenWord);
+                        setMessage(`Banned invalid word: ${chosenWord}`, "text-rose-400");
+                        setTimeout(() => {
+                            for (let i = 0; i < 5; i++) boardState[currentRow][i] = '';
+                            currentCol = 0;
+                            updateBoardUI();
+                            isBotRunning = false;
+                            solveNextRow();
+                        }, 1000);
+                        return;
+                    }
+
+                    submitCurrentRow();
+                }, 350);
+            }, 500);
+        }
+
+        function openBotConfig() {
+            if (isBotRunning) return stopBot();
+            customWordInput.value = "";
+            customWordError.classList.replace('opacity-100', 'opacity-0');
+            playCustomBtn.classList.remove('hidden');
+            customWordWarning.classList.add('hidden');
+            customWordWarning.classList.remove('flex');
+            botConfigModal.classList.remove('hidden');
+            botConfigModal.classList.add('flex');
+        }
+
+        function startBotAutoPlay(customTarget = null) {
+            botConfigModal.classList.remove('flex');
+            botConfigModal.classList.add('hidden');
+            
+            initGame(customTarget); 
+            startTimer();
+            setMessage("Bot auto-playing game...", "text-cyan-400");
+
+            botInterval = setInterval(() => {
+                if (isGameOver || currentRow > 5) {
+                    stopBot();
+                    return;
+                }
+                if (!isBotRunning) {
+                    solveNextRow();
+                }
+            }, 2200);
+
+            solveNextRow();
+            updateButtons();
+        }
+
+        function stopBot() {
+            if (botInterval) clearInterval(botInterval);
+            botInterval = null;
+            isBotRunning = false;
+            updateButtons();
+            if (!isGameOver) setMessage("");
+        }
+
+        function updateButtons() {
+            const canSolveRow = (currentRow >= 1) && !isGameOver && !isBotRunning && (currentRow <= 5) && (botInterval === null);
+            if (solveRowBtn) {
+                solveRowBtn.disabled = !canSolveRow;
+                solveRowBtn.title = currentRow < 1 ? "Play 1st row to enable Solve Row" : "Let bot solve next row";
+            }
+            
+            const isBotActive = (botInterval !== null);
+            if (botPlayBtn) {
+                if (isBotActive) {
+                    botPlayBtn.disabled = false;
+                    botPlayBtn.innerHTML = "<span>⏹️</span> Stop Bot";
+                    botPlayBtn.className = "w-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold py-2.5 px-3.5 rounded-xl shadow-md transition active:scale-95 text-xs sm:text-sm tracking-wide flex justify-center items-center gap-1.5";
+                    botPlayBtn.title = "Stop Auto-Play";
+                } else {
+                    const canAutoPlay = (currentRow === 0) && !isGameOver && !isBotRunning;
+                    botPlayBtn.disabled = !canAutoPlay;
+                    botPlayBtn.innerHTML = "<span>🤖</span> Bot Auto-Play";
+                    botPlayBtn.className = "w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:from-slate-900 disabled:to-slate-900 disabled:text-slate-600 disabled:border-slate-800 border border-cyan-500/30 text-white font-bold py-2.5 px-3.5 rounded-xl shadow-md transition active:scale-95 text-xs sm:text-sm tracking-wide flex justify-center items-center gap-1.5 disabled:cursor-not-allowed";
+                    botPlayBtn.title = currentRow > 0 ? "Auto-Play disabled once manual play starts" : "Start Bot Auto-Play";
+                }
+            }
+        }
+
+        function setMessage(msg, colorClass = "text-cyan-300") {
+            messageBox.textContent = msg;
+            if (msg) {
+                messageBox.className = `text-xs sm:text-sm font-semibold text-center flex items-center justify-center transition-all duration-200 px-2 py-0.5 ${colorClass}`;
+            } else {
+                messageBox.className = `text-xs sm:text-sm font-semibold text-center flex items-center justify-center transition-all duration-200 px-2 my-0 empty:h-0`;
+            }
+        }
+
+        function calculateScore(won, guessesUsed) {
+            if (!won) return 0;
+            let pts = (7 - guessesUsed) * 10;
+            if (timerMode === 'countdown') {
+                pts += Math.floor(timerSeconds * 0.25);
+            }
+            pts = Math.max(5, pts - hintPenalty);
+            return pts;
+        }
+
+        function endGame(won) {
+            isGameOver = true;
+            stopBot();
+            stopTimer();
+            updateButtons();
+
+            const guessesUsed = currentRow + 1;
+            saveStats(won, guessesUsed);
+            gameScore = calculateScore(won, guessesUsed);
+
+            if (won) {
+                soundFx.play('win');
+                triggerConfetti();
+                for (let c = 0; c < 5; c++) {
+                    const tile = document.getElementById(`tile-${currentRow}-${c}`);
+                    if (tile) setTimeout(() => tile.classList.add('tile-bounce'), c * 80);
+                }
+            } else {
+                soundFx.play('lose');
+            }
+
+            setTimeout(() => {
+                modalIcon.textContent = won ? "🎉" : "😢";
+                modalTitle.textContent = won ? "Brilliant! Solved!" : "Game Over";
+                targetWordDisplay.textContent = targetWord;
+                modalGuessesCount.textContent = won ? `${guessesUsed} / 6` : 'X / 6';
+                modalPointsEarned.textContent = won ? `${gameScore} pts` : '0 pts';
+                
+                const stats = getStats();
+                const pct = stats.played > 0 ? Math.round((stats.wins / stats.played) * 100) : 0;
+                modalWinRate.textContent = `${pct}%`;
+
+                if (won) {
+                    leaderboardSaveSection.classList.remove('hidden');
+                } else {
+                    leaderboardSaveSection.classList.add('hidden');
+                }
+
+                modalOverlay.classList.remove('hidden');
+                modalOverlay.classList.add('flex');
+            }, 1400);
+        }
+
+        function renderStatsModal() {
+            const stats = getStats();
+            document.getElementById('statPlayed').textContent = stats.played;
+            const pct = stats.played > 0 ? Math.round((stats.wins / stats.played) * 100) : 0;
+            document.getElementById('statWinPct').textContent = `${pct}%`;
+            document.getElementById('statStreak').textContent = stats.streak;
+            document.getElementById('statMaxStreak').textContent = stats.maxStreak;
+
+            const container = document.getElementById('guessDistributionContainer');
+            container.innerHTML = '';
+
+            const maxVal = Math.max(...stats.distribution, 1);
+
+            for (let i = 0; i < 6; i++) {
+                const count = stats.distribution[i];
+                const pctWidth = Math.max(8, Math.round((count / maxVal) * 100));
+
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2';
+                row.innerHTML = `
+                    <span class="w-3 text-slate-400 font-mono font-bold">${i + 1}</span>
+                    <div class="flex-1 bg-slate-950 rounded-full h-5 overflow-hidden border border-slate-800 p-0.5 modal-inner-box">
+                        <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full flex items-center justify-end px-2 text-[10px] font-mono font-black text-slate-950 transition-all duration-500" style="width: ${pctWidth}%">
+                            ${count}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(row);
+            }
+
+            statsModal.classList.remove('hidden');
+            statsModal.classList.add('flex');
+        }
+
+        // Attach Event Handlers
+        if (solveRowBtn) solveRowBtn.onclick = solveNextRow;
+        if (botPlayBtn) botPlayBtn.onclick = openBotConfig;
+        if (quickRestartBtn) quickRestartBtn.onclick = () => initGame(null);
+        modalRestart.onclick = () => initGame(null);
+        closeBotConfigBtn.onclick = () => {
+            botConfigModal.classList.remove('flex');
+            botConfigModal.classList.add('hidden');
+        };
+        
+        playRandomBtn.onclick = () => startBotAutoPlay(null);
+        
+        let pendingCustomWord = "";
+
+        playCustomBtn.onclick = () => {
+            let val = customWordInput.value.toUpperCase().trim();
+            if (val.length !== 5 || !/^[A-Z]{5}$/.test(val)) {
+                customWordError.textContent = "Must be a 5-letter English word.";
+                customWordError.classList.replace('opacity-0', 'opacity-100');
+                return;
+            }
+            
+            const isKnown = (targetWords && targetWords.includes(val)) || validWords.includes(val) || DICTIONARY.includes(val);
+            if (isKnown) {
+                pendingCustomWord = val;
+                playCustomBtn.classList.add('hidden');
+                customWordWarning.classList.remove('hidden');
+                customWordWarning.classList.add('flex');
+            } else {
+                validWords.push(val);
+                startBotAutoPlay(val);
+            }
+        };
+
+        proceedCustomBtn.onclick = () => {
+            startBotAutoPlay(pendingCustomWord);
+        };
+
+        changeCustomBtn.onclick = () => {
+            customWordInput.value = "";
+            customWordInput.focus();
+            playCustomBtn.classList.remove('hidden');
+            customWordWarning.classList.add('hidden');
+            customWordWarning.classList.remove('flex');
+        };
+
+        statsBtn.onclick = renderStatsModal;
+        closeStatsBtn.onclick = () => {
+            statsModal.classList.remove('flex');
+            statsModal.classList.add('hidden');
+        };
+
+        resetStatsBtn.onclick = () => {
+            try { localStorage.removeItem('wordle_bot_stats'); } catch(e){}
+            renderStatsModal();
+        };
+
+        hintBtn.onclick = requestHint;
+
+        if (helpBtn) {
+            helpBtn.onclick = () => {
+                soundFx.play('pop');
+                if (helpModal) {
+                    helpModal.classList.remove('hidden');
+                    helpModal.classList.add('flex');
+                }
+            };
+        }
+
+        if (closeHelpBtn) {
+            closeHelpBtn.onclick = () => {
+                helpModal.classList.remove('flex');
+                helpModal.classList.add('hidden');
+            };
+        }
+
+        if (gotItHelpBtn) {
+            gotItHelpBtn.onclick = () => {
+                helpModal.classList.remove('flex');
+                helpModal.classList.add('hidden');
+            };
+        }
+
+        leaderboardBtn.onclick = () => {
+            leaderboardModal.classList.remove('hidden');
+            leaderboardModal.classList.add('flex');
+            fetchLeaderboard();
+        };
+
+        closeLeaderboardBtn.onclick = () => {
+            leaderboardModal.classList.remove('flex');
+            leaderboardModal.classList.add('hidden');
+        };
+
+        refreshLeaderboardBtn.onclick = fetchLeaderboard;
+        modalViewLeaderboard.onclick = () => {
+            modalOverlay.classList.remove('flex');
+            modalOverlay.classList.add('hidden');
+            leaderboardModal.classList.remove('hidden');
+            leaderboardModal.classList.add('flex');
+            fetchLeaderboard();
+        };
+
+        saveScoreBtn.onclick = submitScore;
+
+        settingsBtn.onclick = () => {
+            settingsModal.classList.remove('hidden');
+            settingsModal.classList.add('flex');
+        };
+
+        closeSettingsBtn.onclick = () => {
+            settingsModal.classList.remove('flex');
+            settingsModal.classList.add('hidden');
+        };
+
+        // Fullscreen Toggle Logic
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const fullscreenIconEnter = document.getElementById('fullscreenIconEnter');
+        const fullscreenIconExit = document.getElementById('fullscreenIconExit');
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+        }
+
+        function updateFullscreenState() {
+            const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+            if (fullscreenIconEnter) fullscreenIconEnter.classList.toggle('hidden', isFull);
+            if (fullscreenIconExit) fullscreenIconExit.classList.toggle('hidden', !isFull);
+            if (fullscreenBtn) fullscreenBtn.setAttribute('title', isFull ? 'Exit Full Screen' : 'Toggle Fullscreen');
+        }
+
+        if (fullscreenBtn) {
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+        }
+        document.addEventListener('fullscreenchange', updateFullscreenState);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenState);
+
+
+        window.addEventListener('keydown', (e) => {
+            if (isGameOver || isBotRunning) return;
+            if (document.activeElement === customWordInput || document.activeElement === document.getElementById('playerNameInput')) return;
+
+            if (e.key === 'Enter') handleKeyPress('ENTER');
+            else if (e.key === 'Backspace') handleKeyPress('BACK');
+            else {
+                const upper = e.key.toUpperCase();
+                if (/^[A-Z]$/.test(upper)) handleKeyPress(upper);
+            }
+        });
+
+        // Theme Toggle
+        const settingsThemeToggleBtn = document.getElementById('settingsThemeToggleBtn');
+
+        function applyTheme(theme) {
+            const desc = document.getElementById('themeStatusDesc');
+            const btnText = document.getElementById('settingsThemeBtnText');
+            
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+                if (desc) desc.textContent = 'Current: Light Mode ☀️';
+                if (btnText) btnText.textContent = 'Switch to Dark 🌙';
+            } else {
+                document.body.classList.remove('light-theme');
+                if (desc) desc.textContent = 'Current: Dark Mode 🌙';
+                if (btnText) btnText.textContent = 'Switch to Light ☀️';
+            }
+            if (settingsThemeToggleBtn) {
+                settingsThemeToggleBtn.style.opacity = '1';
+                settingsThemeToggleBtn.style.cursor = 'pointer';
+            }
+            try { localStorage.setItem('theme', theme); } catch(e){}
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(newTheme);
+            window.dispatchEvent(new Event('storage'));
+        }
+
+        if (settingsThemeToggleBtn) settingsThemeToggleBtn.addEventListener('click', toggleTheme);
+
+        const savedTheme = (function() {
+            try { return localStorage.getItem('theme'); } catch(e) { return 'light'; }
+        })() || 'light';
+        applyTheme(savedTheme);
+        
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'theme') {
+                applyTheme(e.newValue || 'light');
+            }
+        });
+
+        // Initialize Application
+        setTimerMode(timerMode);
+        initGame();
+        loadDatasetsFromAPI();
+    </script>
+</body>
+</html>
