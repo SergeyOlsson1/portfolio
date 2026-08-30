@@ -176,5 +176,4 @@ async def predict_character(req: PredictRequest):
         candidates = [c[0] for c in raw_candidates]
     else:
         candidates = []
-
     return {"status": "ok", "candidates": candidates}

@@ -7,7 +7,6 @@ import bcrypt
 
 router = APIRouter()
 
-# Go up two levels to reach the project root
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 AUTH_DB_PATH = BASE_DIR / "data" / "database.db"
