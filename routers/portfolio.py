@@ -1,9 +1,11 @@
+# routers/portfolio.py
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from pathlib import Path
 import sqlite3
 import bcrypt
+import json
 
 router = APIRouter()
 
@@ -16,6 +18,17 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+class PortfolioState(BaseModel):
+    data: str
+
+def init_db():
+    with sqlite3.connect(AUTH_DB_PATH) as conn:
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS portfolio_state (id INTEGER PRIMARY KEY, state_data TEXT)''')
+        conn.commit()
+
+init_db()
 
 @router.get("/")
 async def serve_portfolio(request: Request):
@@ -39,3 +52,21 @@ def login_admin(req: LoginRequest):
             return {"status": "ok", "token": "secret-admin-token"}
         else:
             raise HTTPException(status_code=401, detail="Invalid credentials")
+
+@router.get("/api/portfolio_data")
+def get_portfolio_data():
+    with sqlite3.connect(AUTH_DB_PATH) as conn:
+        c = conn.cursor()
+        c.execute('SELECT state_data FROM portfolio_state WHERE id = 1')
+        row = c.fetchone()
+        if row:
+            return {"status": "ok", "data": json.loads(row[0])}
+        return {"status": "empty"}
+
+@router.post("/api/portfolio_data")
+def save_portfolio_data(payload: PortfolioState):
+    with sqlite3.connect(AUTH_DB_PATH) as conn:
+        c = conn.cursor()
+        c.execute('INSERT OR REPLACE INTO portfolio_state (id, state_data) VALUES (1, ?)', (payload.data,))
+        conn.commit()
+    return {"status": "ok"}

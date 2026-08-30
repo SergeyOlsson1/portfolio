@@ -1,3 +1,4 @@
+<!-- templates/portfolio.html -->
 {% extends "base.html" %}
 
 {% block extra_styles %}
@@ -165,7 +166,6 @@
 
     let imageUploadTarget = -1;
 
-    // Säkerställ att AppState och dess data alltid är definierade direkt vid laddning
     window.AppState = window.AppState || {};
     window.AppState.data = window.AppState.data || {};
     for (let k in PORTFOLIO_DEFAULTS) {
@@ -174,13 +174,13 @@
         }
     }
 
-    function pageInit() {
+    async function pageInit() {
         for (let k in PORTFOLIO_DEFAULTS) {
             if (AppState.data[k] === undefined || AppState.data[k] === null) {
                 AppState.data[k] = PORTFOLIO_DEFAULTS[k];
             }
         }
-        localStorage.setItem('db', JSON.stringify(AppState.data));
+        await saveGlobalData();
         navigate('portfolio');
     }
 
@@ -385,24 +385,24 @@
         openModal('modal-edit-hero');
     }
 
-    function saveTitle() {
+    async function saveTitle() {
         AppState.data.siteTitle = document.getElementById('edit-site-title').value;
-        localStorage.setItem('db', JSON.stringify(AppState.data));
+        await saveGlobalData();
         closeModals();
         if (typeof updateGlobalUI === 'function') updateGlobalUI();
     }
 
-    function saveFooter() {
+    async function saveFooter() {
         AppState.data.footer_copy_sv = document.getElementById('edit-footer-copy-sv').value;
         AppState.data.footer_copy_en = document.getElementById('edit-footer-copy-en').value;
         AppState.data.footer_tech_sv = document.getElementById('edit-footer-tech-sv').value;
         AppState.data.footer_tech_en = document.getElementById('edit-footer-tech-en').value;
-        localStorage.setItem('db', JSON.stringify(AppState.data));
+        await saveGlobalData();
         closeModals();
         if (typeof updateGlobalUI === 'function') updateGlobalUI();
     }
 
-    function saveHero() {
+    async function saveHero() {
         AppState.data.name = document.getElementById('edit-hero-name').value;
         AppState.data.role_sv = document.getElementById('edit-hero-role-sv').value;
         AppState.data.role_en = document.getElementById('edit-hero-role-en').value;
@@ -411,12 +411,12 @@
         AppState.data.study_sv = document.getElementById('edit-hero-study-sv').value;
         AppState.data.study_en = document.getElementById('edit-hero-study-en').value;
         AppState.data.tags = document.getElementById('edit-hero-tags').value;
-        localStorage.setItem('db', JSON.stringify(AppState.data));
+        await saveGlobalData();
         closeModals();
         renderPortfolio();
     }
 
-    function saveProject() {
+    async function saveProject() {
         const idx = document.getElementById('edit-idx').value;
         if (!AppState.data.projects) AppState.data.projects = [...PORTFOLIO_DEFAULTS.projects];
         let p = AppState.data.projects[idx];
@@ -431,7 +431,7 @@
             p.tags = document.getElementById('edit-proj-tags').value;
             p.appLink = document.getElementById('edit-app-link').value;
             p.extLink = document.getElementById('edit-ext-link').value;
-            localStorage.setItem('db', JSON.stringify(AppState.data));
+            await saveGlobalData();
         }
         closeModals();
         const portView = document.getElementById('view-portfolio');
@@ -446,9 +446,9 @@
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(evt) {
+        reader.onload = async function(evt) {
             AppState.data.profileImg = evt.target.result;
-            localStorage.setItem('db', JSON.stringify(AppState.data));
+            await saveGlobalData();
             renderPortfolio();
         };
         reader.readAsDataURL(file);
@@ -469,11 +469,11 @@
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(evt) {
+        reader.onload = async function(evt) {
             if (!AppState.data.projects) AppState.data.projects = [...PORTFOLIO_DEFAULTS.projects];
             if (AppState.data.projects[imageUploadTarget]) {
                 AppState.data.projects[imageUploadTarget].img = evt.target.result;
-                localStorage.setItem('db', JSON.stringify(AppState.data));
+                await saveGlobalData();
                 const portView = document.getElementById('view-portfolio');
                 if (portView && portView.classList.contains('active')) {
                     renderPortfolio();

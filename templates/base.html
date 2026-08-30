@@ -1,3 +1,4 @@
+<!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="sv" class="scroll-smooth">
 <head>
@@ -75,7 +76,6 @@
                 <div class="text-center md:text-left">
                     <p id="footer-copy" class="text-sm font-medium text-slate-900 dark:text-slate-300"></p>
                 </div>
-                <!-- Ändrade text-slate-500 till text-slate-900 för konsekvent färg -->
                 <div class="text-center md:text-right flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-slate-300">
                     <svg class="w-4 h-4 shrink-0 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     <p id="footer-tech"></p>
@@ -110,23 +110,46 @@
             footer_tech_en: "Powered by FastAPI & React. Securely hosted on Microsoft Azure."
         };
 
-        // Enforce Swedish as Default Language
         let AppState = {
             lang: localStorage.getItem('lang') || 'sv',
             isAdmin: localStorage.getItem('isAdmin') === 'true',
             data: {}
         };
 
-        function initGlobalData() {
-            let db = JSON.parse(localStorage.getItem('db')) || {};
-            for (let k in GLOBAL_DEFAULT) {
-                if (db[k] === undefined) db[k] = GLOBAL_DEFAULT[k];
+        async function initGlobalData() {
+            try {
+                const res = await fetch('/api/portfolio_data');
+                const result = await res.json();
+                let db = {};
+                if (result.status === 'ok' && result.data) {
+                    db = result.data;
+                }
+                for (let k in GLOBAL_DEFAULT) {
+                    if (db[k] === undefined) db[k] = GLOBAL_DEFAULT[k];
+                }
+                AppState.data = db;
+            } catch (e) {
+                console.error("Failed to load global data", e);
+                let db = {};
+                for (let k in GLOBAL_DEFAULT) {
+                    if (db[k] === undefined) db[k] = GLOBAL_DEFAULT[k];
+                }
+                AppState.data = db;
             }
-            AppState.data = db;
-            localStorage.setItem('db', JSON.stringify(db));
         }
 
-        // Force Default Light Theme Everywhere
+        async function saveGlobalData() {
+            try {
+                await fetch('/api/portfolio_data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: JSON.stringify(AppState.data) })
+                });
+            } catch (e) {
+                console.error("Failed to save data", e);
+            }
+        }
+
         if (localStorage.getItem('theme') === 'dark') {
             document.documentElement.classList.add('dark');
         } else {
@@ -168,7 +191,6 @@
                 el.innerText = el.getAttribute('data-' + AppState.lang); 
             });
 
-            // Trigger local views to update their translations
             if (typeof updateLocalUI === 'function') updateLocalUI();
         }
 
@@ -209,11 +231,10 @@
             } catch(e) { err.textContent = "Error"; err.classList.add('opacity-100'); }
         }
 
-        // Initialize Everything cleanly
-        document.addEventListener('DOMContentLoaded', () => {
-            initGlobalData();
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initGlobalData();
             updateGlobalUI();
-            if (typeof pageInit === 'function') pageInit();
+            if (typeof pageInit === 'function') await pageInit();
         });
     </script>
     {% block scripts %}{% endblock %}
