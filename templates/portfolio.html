@@ -114,33 +114,81 @@
 {% block scripts %}
 <script>
     const PORTFOLIO_DEFAULTS = {
-        name: "John Doe", role_sv: "Systemutvecklare & Designer", role_en: "Software Developer & Designer",
-        live_sv: "Bor i City", live_en: "Living in City", study_sv: "Student i City", study_en: "Studying in City",
-        tags: "Python, HTML, CSS, JavaScript, Java, AI", profileImg: "", 
+        name: "John Doe",
+        role_sv: "Systemutvecklare & Designer",
+        role_en: "Software Developer & Designer",
+        live_sv: "Bor i City",
+        live_en: "Living in City",
+        study_sv: "Student i City",
+        study_en: "Studying in City",
+        tags: "Python, HTML, CSS, JavaScript, Java, AI",
+        profileImg: "",
         projects: [
-            { id: "wordle", appLink: "/wordle", title_sv: "Wordle AI", title_en: "Wordle Bot", desc_sv: "Spela eller låt boten lösa spelet åt dig i detta gränssnitt.", desc_en: "Play or let the bot solve the game for you in this interface.", details_sv: "Ett Wordle-klon som stöder autonoma AI-prediktioner.", details_en: "A Wordle clone supporting autonomous AI predictions.", img: "https://images.unsplash.com/photo-1647413669642-83b632598379?auto=format&fit=crop&q=80&w=800", tags: "JavaScript, Algorithms" },
-            { id: "ocr", appLink: "/ocr", title_sv: "AI OCR", title_en: "AI OCR", desc_sv: "Rita bokstäver direkt på canvasen och låt AI tolka dem.", desc_en: "Draw letters directly on the canvas and let AI predict them.", details_sv: "Ett interaktivt verktyg för att identifiera handskrivna tecken.", details_en: "An interactive tool to identify handwritten characters.", img: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&q=80&w=800", tags: "TensorFlow, FastAPI" },
-            { id: "ext", title_sv: "Externt Projekt", title_en: "External Project", desc_sv: "Ett exempel på ett projekt som länkar externt.", desc_en: "An example of a project that links externally.", details_sv: "Ett fristående system för en extern klient.", details_en: "A standalone system for an external client.", img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=800", extLink: "https://example.com", tags: "FastAPI, Azure" }
+            {
+                id: "wordle",
+                appLink: "/wordle",
+                title_sv: "Wordle AI",
+                title_en: "Wordle Bot",
+                desc_sv: "Spela eller låt boten lösa spelet åt dig i detta gränssnitt.",
+                desc_en: "Play or let the bot solve the game for you in this interface.",
+                details_sv: "Ett Wordle-klon som stöder autonoma AI-prediktioner.",
+                details_en: "A Wordle clone supporting autonomous AI predictions.",
+                img: "https://images.unsplash.com/photo-1647413669642-83b632598379?auto=format&fit=crop&q=80&w=800",
+                tags: "JavaScript, Algorithms"
+            },
+            {
+                id: "ocr",
+                appLink: "/ocr",
+                title_sv: "AI OCR",
+                title_en: "AI OCR",
+                desc_sv: "Rita bokstäver direkt på canvasen och låt AI tolka dem.",
+                desc_en: "Draw letters directly on the canvas and let AI predict them.",
+                details_sv: "Ett interaktivt verktyg för att identifiera handskrivna tecken.",
+                details_en: "An interactive tool to identify handwritten characters.",
+                img: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&q=80&w=800",
+                tags: "TensorFlow, FastAPI"
+            },
+            {
+                id: "ext",
+                title_sv: "Externt Projekt",
+                title_en: "External Project",
+                desc_sv: "Ett exempel på ett projekt som länkar externt.",
+                desc_en: "An example of a project that links externally.",
+                details_sv: "Ett fristående system för en extern klient.",
+                details_en: "A standalone system for an external client.",
+                img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=800",
+                extLink: "https://example.com",
+                tags: "FastAPI, Azure"
+            }
         ]
     };
 
     let imageUploadTarget = -1;
 
-    // Called automatically by base.html on load
+    // Säkerställ att AppState och dess data alltid är definierade direkt vid laddning
+    window.AppState = window.AppState || {};
+    window.AppState.data = window.AppState.data || {};
+    for (let k in PORTFOLIO_DEFAULTS) {
+        if (window.AppState.data[k] === undefined || window.AppState.data[k] === null) {
+            window.AppState.data[k] = PORTFOLIO_DEFAULTS[k];
+        }
+    }
+
     function pageInit() {
-        for (let k in PORTFOLIO_DEFAULTS) { 
-            if (AppState.data[k] === undefined) AppState.data[k] = PORTFOLIO_DEFAULTS[k]; 
+        for (let k in PORTFOLIO_DEFAULTS) {
+            if (AppState.data[k] === undefined || AppState.data[k] === null) {
+                AppState.data[k] = PORTFOLIO_DEFAULTS[k];
+            }
         }
         localStorage.setItem('db', JSON.stringify(AppState.data));
         navigate('portfolio');
     }
 
-    // Called automatically by base.html on language change
     function updateLocalUI() {
         const portView = document.getElementById('view-portfolio');
         if (portView && portView.classList.contains('active')) {
             renderPortfolio();
-        } else if (AppState.currentProjectIdx !== -1) {
+        } else if (AppState.currentProjectIdx !== undefined && AppState.currentProjectIdx !== -1) {
             renderDetails(AppState.currentProjectIdx);
         }
     }
@@ -149,41 +197,91 @@
         document.querySelectorAll('.view').forEach(v => {
             v.classList.add('hidden');
             v.classList.remove('active');
-        }); 
-        
+        });
+
         const btnBack = document.getElementById('btn-back');
-        
-        if (viewId === 'portfolio') { 
-            if(btnBack) { btnBack.classList.add('hidden'); btnBack.classList.remove('flex'); }
+
+        if (viewId === 'portfolio') {
+            if (btnBack) {
+                btnBack.classList.add('hidden');
+                btnBack.classList.remove('flex');
+            }
             const view = document.getElementById('view-portfolio');
-            view.classList.remove('hidden');
-            requestAnimationFrame(() => view.classList.add('active'));
-            renderPortfolio(); 
-            window.scrollTo({ top: 0, behavior: 'smooth' }); 
-        } 
-        else if (viewId === 'details') { 
-            if(btnBack) { btnBack.classList.remove('hidden'); btnBack.classList.add('flex'); }
-            AppState.currentProjectIdx = param; 
-            renderDetails(param); 
+            if (view) {
+                view.classList.remove('hidden');
+                requestAnimationFrame(() => view.classList.add('active'));
+            }
+            renderPortfolio();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (viewId === 'details') {
+            if (btnBack) {
+                btnBack.classList.remove('hidden');
+                btnBack.classList.add('flex');
+            }
+            AppState.currentProjectIdx = param;
+            renderDetails(param);
             const view = document.getElementById('view-details');
-            view.classList.remove('hidden');
-            requestAnimationFrame(() => view.classList.add('active'));
-            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            if (view) {
+                view.classList.remove('hidden');
+                requestAnimationFrame(() => view.classList.add('active'));
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 
     function renderPortfolio() {
-        document.getElementById('hero-name').innerText = AppState.data.name; document.getElementById('hero-role').innerText = AppState.lang === 'sv' ? AppState.data.role_sv : AppState.data.role_en;
-        document.getElementById('hero-live').innerText = AppState.lang === 'sv' ? AppState.data.live_sv : AppState.data.live_en; document.getElementById('hero-study').innerText = AppState.lang === 'sv' ? AppState.data.study_sv : AppState.data.study_en;
-        const tagsContainer = document.getElementById('hero-tags'); tagsContainer.innerHTML = '';
-        if (AppState.data.tags) { AppState.data.tags.split(',').forEach(t => { if(t.trim()) tagsContainer.innerHTML += `<span class='px-4 py-1.5 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 text-sm rounded-full font-bold shadow-sm'>${t.trim()}</span>`; }); }
-        const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(AppState.data.name)}&background=e2e8f0&color=0f172a&size=256&font-size=0.33&bold=true`;
-        document.getElementById('hero-img').src = AppState.data.profileImg || fallbackUrl; document.getElementById('hero-img').onerror = function() { this.onerror = null; this.src = fallbackUrl; };
-        
-        let gridHTML = ""; AppState.data.projects.forEach((p, i) => {
-            let title = AppState.lang === 'sv' ? p.title_sv : p.title_en; let desc = AppState.lang === 'sv' ? p.desc_sv : p.desc_en;
-            let tagsHTML = ""; if (p.tags) { let tags = p.tags.split(',').filter(t => t.trim()); if (tags.length) { tagsHTML = "<div class='flex flex-wrap gap-2 mb-5'>" + tags.map(t => `<span class='px-2.5 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-xs font-bold rounded-md'>${t.trim()}</span>`).join('') + "</div>"; } }
-            
+        const d = AppState.data || PORTFOLIO_DEFAULTS;
+        const lang = AppState.lang || 'sv';
+
+        const heroNameEl = document.getElementById('hero-name');
+        if (heroNameEl) heroNameEl.innerText = d.name || PORTFOLIO_DEFAULTS.name;
+
+        const heroRoleEl = document.getElementById('hero-role');
+        if (heroRoleEl) heroRoleEl.innerText = lang === 'sv' ? (d.role_sv || PORTFOLIO_DEFAULTS.role_sv) : (d.role_en || PORTFOLIO_DEFAULTS.role_en);
+
+        const heroLiveEl = document.getElementById('hero-live');
+        if (heroLiveEl) heroLiveEl.innerText = lang === 'sv' ? (d.live_sv || PORTFOLIO_DEFAULTS.live_sv) : (d.live_en || PORTFOLIO_DEFAULTS.live_en);
+
+        const heroStudyEl = document.getElementById('hero-study');
+        if (heroStudyEl) heroStudyEl.innerText = lang === 'sv' ? (d.study_sv || PORTFOLIO_DEFAULTS.study_sv) : (d.study_en || PORTFOLIO_DEFAULTS.study_en);
+
+        const tagsContainer = document.getElementById('hero-tags');
+        if (tagsContainer) {
+            tagsContainer.innerHTML = '';
+            const tagsStr = d.tags !== undefined ? d.tags : PORTFOLIO_DEFAULTS.tags;
+            if (tagsStr) {
+                tagsStr.split(',').forEach(t => {
+                    if (t.trim()) {
+                        tagsContainer.innerHTML += `<span class='px-4 py-1.5 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 text-sm rounded-full font-bold shadow-sm'>${t.trim()}</span>`;
+                    }
+                });
+            }
+        }
+
+        const currentName = d.name || PORTFOLIO_DEFAULTS.name;
+        const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentName)}&background=e2e8f0&color=0f172a&size=256&font-size=0.33&bold=true`;
+        const heroImgEl = document.getElementById('hero-img');
+        if (heroImgEl) {
+            heroImgEl.src = d.profileImg || fallbackUrl;
+            heroImgEl.onerror = function() {
+                this.onerror = null;
+                this.src = fallbackUrl;
+            };
+        }
+
+        let gridHTML = "";
+        const projects = Array.isArray(d.projects) ? d.projects : PORTFOLIO_DEFAULTS.projects;
+        projects.forEach((p, i) => {
+            const title = lang === 'sv' ? (p.title_sv || '') : (p.title_en || '');
+            const desc = lang === 'sv' ? (p.desc_sv || '') : (p.desc_en || '');
+            let tagsHTML = "";
+            if (p.tags) {
+                const tags = p.tags.split(',').filter(t => t.trim());
+                if (tags.length) {
+                    tagsHTML = "<div class='flex flex-wrap gap-2 mb-5'>" + tags.map(t => `<span class='px-2.5 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-xs font-bold rounded-md'>${t.trim()}</span>`).join('') + "</div>";
+                }
+            }
+
             gridHTML += `<div class='bg-white dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden shadow-glass dark:shadow-glass-dark relative group flex flex-col h-full'>
                 <button class='admin-only absolute top-3 right-3 bg-indigo-500 text-white w-8 h-8 rounded-full items-center justify-center shadow-md z-10 hover:scale-110' onclick='openEdit(${i})'>⚙️</button>
                 <div class="relative">
@@ -195,43 +293,197 @@
                     <p class='text-slate-600 dark:text-slate-400 text-sm mb-4 leading-relaxed flex-grow'>${desc}</p>
                     ${tagsHTML}
                     <div class='flex gap-3 mt-auto w-full'>
-                        ${p.appLink ? `<a href='${p.appLink}' class='flex-1 text-center px-2 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl'>${AppState.lang === 'sv' ? 'Öppna App' : 'Open App'}</a>` : ''}
-                        ${p.extLink ? `<a href='${p.extLink}' target='_blank' class='flex-1 text-center px-2 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl'>${AppState.lang === 'sv' ? 'Webbplats' : 'Website'}</a>` : ''}
-                        <button class='flex-1 px-2 py-2.5 bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-white text-sm font-semibold rounded-xl' onclick="navigate('details', ${i})">${AppState.lang === 'sv' ? 'Info' : 'Details'}</button>
+                        ${p.appLink ? `<a href='${p.appLink}' class='flex-1 text-center px-2 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl'>${lang === 'sv' ? 'Öppna App' : 'Open App'}</a>` : ''}
+                        ${p.extLink ? `<a href='${p.extLink}' target='_blank' class='flex-1 text-center px-2 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl'>${lang === 'sv' ? 'Webbplats' : 'Website'}</a>` : ''}
+                        <button class='flex-1 px-2 py-2.5 bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-white text-sm font-semibold rounded-xl' onclick="navigate('details', ${i})">${lang === 'sv' ? 'Info' : 'Details'}</button>
                     </div>
                 </div>
             </div>`;
-        }); document.getElementById('project-grid').innerHTML = gridHTML;
+        });
+        const projectGridEl = document.getElementById('project-grid');
+        if (projectGridEl) projectGridEl.innerHTML = gridHTML;
     }
 
     function renderDetails(idx) {
-        let p = AppState.data.projects[idx]; 
-        document.getElementById('det-img').src = p.img; 
-        document.getElementById('det-title').innerText = AppState.lang === 'sv' ? p.title_sv : p.title_en;
-        document.getElementById('det-tags').innerHTML = (p.tags || "").split(',').filter(t => t.trim()).map(t => `<span class='px-3 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-sm font-bold rounded-md'>${t.trim()}</span>`).join('');
-        document.getElementById('det-desc').innerText = AppState.lang === 'sv' ? p.desc_sv : p.desc_en; 
-        document.getElementById('det-details').innerText = AppState.lang === 'sv' ? p.details_sv : p.details_en;
-        document.getElementById('details-cogwheel').onclick = function() { openEdit(idx); };
+        const d = AppState.data || PORTFOLIO_DEFAULTS;
+        const projects = Array.isArray(d.projects) ? d.projects : PORTFOLIO_DEFAULTS.projects;
+        const p = projects[idx] || PORTFOLIO_DEFAULTS.projects[0];
+        const lang = AppState.lang || 'sv';
+
+        const detImg = document.getElementById('det-img');
+        if (detImg) detImg.src = p.img || '';
+
+        const detTitle = document.getElementById('det-title');
+        if (detTitle) detTitle.innerText = lang === 'sv' ? (p.title_sv || '') : (p.title_en || '');
+
+        const detTags = document.getElementById('det-tags');
+        if (detTags) {
+            detTags.innerHTML = (p.tags || "").split(',').filter(t => t.trim()).map(t => `<span class='px-3 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-sm font-bold rounded-md'>${t.trim()}</span>`).join('');
+        }
+
+        const detDesc = document.getElementById('det-desc');
+        if (detDesc) detDesc.innerText = lang === 'sv' ? (p.desc_sv || '') : (p.desc_en || '');
+
+        const detDetails = document.getElementById('det-details');
+        if (detDetails) detDetails.innerText = lang === 'sv' ? (p.details_sv || '') : (p.details_en || '');
+
+        const cogwheel = document.getElementById('details-cogwheel');
+        if (cogwheel) {
+            cogwheel.onclick = function() { openEdit(idx); };
+        }
+
+        let actions = "";
+        if (p.appLink) actions += `<a href='${p.appLink}' class='px-8 py-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl'>${lang === 'sv' ? 'Öppna' : 'Open'}</a>`;
+        if (p.extLink) actions += `<a href='${p.extLink}' target='_blank' class='px-8 py-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl'>${lang === 'sv' ? 'Webbplats' : 'Website'}</a>`;
         
-        let actions = ""; 
-        if (p.appLink) actions += `<a href='${p.appLink}' class='px-8 py-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl'>${AppState.lang === 'sv' ? 'Öppna' : 'Open'}</a>`; 
-        if (p.extLink) actions += `<a href='${p.extLink}' target='_blank' class='px-8 py-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl'>${AppState.lang === 'sv' ? 'Webbplats' : 'Website'}</a>`;
-        document.getElementById('det-actions').innerHTML = actions;
+        const detActions = document.getElementById('det-actions');
+        if (detActions) detActions.innerHTML = actions;
     }
 
-    function openEdit(idx) { let p = AppState.data.projects[idx]; document.getElementById('edit-idx').value = idx; document.getElementById('edit-title-sv').value = p.title_sv; document.getElementById('edit-title-en').value = p.title_en; document.getElementById('edit-img').value = p.img; document.getElementById('edit-desc-sv').value = p.desc_sv; document.getElementById('edit-desc-en').value = p.desc_en; document.getElementById('edit-details-sv').value = p.details_sv; document.getElementById('edit-details-en').value = p.details_en; document.getElementById('edit-proj-tags').value = p.tags; document.getElementById('edit-app-link').value = p.appLink || ""; document.getElementById('edit-ext-link').value = p.extLink || ""; openModal('modal-edit'); }
-    function openEditTitle() { document.getElementById('edit-site-title').value = AppState.data.siteTitle; openModal('modal-edit-title'); }
-    function openEditFooter() { document.getElementById('edit-footer-copy-sv').value = AppState.data.footer_copy_sv; document.getElementById('edit-footer-copy-en').value = AppState.data.footer_copy_en; document.getElementById('edit-footer-tech-sv').value = AppState.data.footer_tech_sv; document.getElementById('edit-footer-tech-en').value = AppState.data.footer_tech_en; openModal('modal-edit-footer'); }
-    function openEditHero() { document.getElementById('edit-hero-name').value = AppState.data.name; document.getElementById('edit-hero-role-sv').value = AppState.data.role_sv; document.getElementById('edit-hero-role-en').value = AppState.data.role_en; document.getElementById('edit-hero-live-sv').value = AppState.data.live_sv; document.getElementById('edit-hero-live-en').value = AppState.data.live_en; document.getElementById('edit-hero-study-sv').value = AppState.data.study_sv; document.getElementById('edit-hero-study-en').value = AppState.data.study_en; document.getElementById('edit-hero-tags').value = AppState.data.tags; openModal('modal-edit-hero'); }
-    
-    function saveTitle() { AppState.data.siteTitle = document.getElementById('edit-site-title').value; localStorage.setItem('db', JSON.stringify(AppState.data)); closeModals(); updateGlobalUI(); }
-    function saveFooter() { AppState.data.footer_copy_sv = document.getElementById('edit-footer-copy-sv').value; AppState.data.footer_copy_en = document.getElementById('edit-footer-copy-en').value; AppState.data.footer_tech_sv = document.getElementById('edit-footer-tech-sv').value; AppState.data.footer_tech_en = document.getElementById('edit-footer-tech-en').value; localStorage.setItem('db', JSON.stringify(AppState.data)); closeModals(); updateGlobalUI(); }
-    function saveHero() { AppState.data.name = document.getElementById('edit-hero-name').value; AppState.data.role_sv = document.getElementById('edit-hero-role-sv').value; AppState.data.role_en = document.getElementById('edit-hero-role-en').value; AppState.data.live_sv = document.getElementById('edit-hero-live-sv').value; AppState.data.live_en = document.getElementById('edit-hero-live-en').value; AppState.data.study_sv = document.getElementById('edit-hero-study-sv').value; AppState.data.study_en = document.getElementById('edit-hero-study-en').value; AppState.data.tags = document.getElementById('edit-hero-tags').value; localStorage.setItem('db', JSON.stringify(AppState.data)); closeModals(); renderPortfolio(); }
-    function saveProject() { let idx = document.getElementById('edit-idx').value; let p = AppState.data.projects[idx]; p.title_sv = document.getElementById('edit-title-sv').value; p.title_en = document.getElementById('edit-title-en').value; p.img = document.getElementById('edit-img').value; p.desc_sv = document.getElementById('edit-desc-sv').value; p.desc_en = document.getElementById('edit-desc-en').value; p.details_sv = document.getElementById('edit-details-sv').value; p.details_en = document.getElementById('edit-details-en').value; p.tags = document.getElementById('edit-proj-tags').value; p.appLink = document.getElementById('edit-app-link').value; p.extLink = document.getElementById('edit-ext-link').value; localStorage.setItem('db', JSON.stringify(AppState.data)); closeModals(); if (document.getElementById('view-portfolio').classList.contains('active')) renderPortfolio(); else renderDetails(idx); }
+    function openEdit(idx) {
+        const d = AppState.data || PORTFOLIO_DEFAULTS;
+        const projects = Array.isArray(d.projects) ? d.projects : PORTFOLIO_DEFAULTS.projects;
+        const p = projects[idx];
+        if (!p) return;
+        document.getElementById('edit-idx').value = idx;
+        document.getElementById('edit-title-sv').value = p.title_sv || '';
+        document.getElementById('edit-title-en').value = p.title_en || '';
+        document.getElementById('edit-img').value = p.img || '';
+        document.getElementById('edit-desc-sv').value = p.desc_sv || '';
+        document.getElementById('edit-desc-en').value = p.desc_en || '';
+        document.getElementById('edit-details-sv').value = p.details_sv || '';
+        document.getElementById('edit-details-en').value = p.details_en || '';
+        document.getElementById('edit-proj-tags').value = p.tags || '';
+        document.getElementById('edit-app-link').value = p.appLink || "";
+        document.getElementById('edit-ext-link').value = p.extLink || "";
+        openModal('modal-edit');
+    }
 
-    function handleProfileUpload(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { AppState.data.profileImg = e.target.result; localStorage.setItem('db', JSON.stringify(AppState.data)); renderPortfolio(); }; reader.readAsDataURL(file); e.target.value = ''; }
-    function triggerProjectImageUpload(idx) { imageUploadTarget = idx; document.getElementById('project-image-upload').click(); }
-    function triggerDetailsImageUpload() { imageUploadTarget = AppState.currentProjectIdx; document.getElementById('project-image-upload').click(); }
-    function handleProjectUpload(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(evt) { AppState.data.projects[imageUploadTarget].img = evt.target.result; localStorage.setItem('db', JSON.stringify(AppState.data)); if (document.getElementById('view-portfolio').classList.contains('active')) renderPortfolio(); else renderDetails(imageUploadTarget); }; reader.readAsDataURL(file); e.target.value = ''; }
+    function openEditTitle() {
+        document.getElementById('edit-site-title').value = AppState.data.siteTitle || '';
+        openModal('modal-edit-title');
+    }
+
+    function openEditFooter() {
+        document.getElementById('edit-footer-copy-sv').value = AppState.data.footer_copy_sv || '';
+        document.getElementById('edit-footer-copy-en').value = AppState.data.footer_copy_en || '';
+        document.getElementById('edit-footer-tech-sv').value = AppState.data.footer_tech_sv || '';
+        document.getElementById('edit-footer-tech-en').value = AppState.data.footer_tech_en || '';
+        openModal('modal-edit-footer');
+    }
+
+    function openEditHero() {
+        const d = AppState.data || PORTFOLIO_DEFAULTS;
+        document.getElementById('edit-hero-name').value = d.name || '';
+        document.getElementById('edit-hero-role-sv').value = d.role_sv || '';
+        document.getElementById('edit-hero-role-en').value = d.role_en || '';
+        document.getElementById('edit-hero-live-sv').value = d.live_sv || '';
+        document.getElementById('edit-hero-live-en').value = d.live_en || '';
+        document.getElementById('edit-hero-study-sv').value = d.study_sv || '';
+        document.getElementById('edit-hero-study-en').value = d.study_en || '';
+        document.getElementById('edit-hero-tags').value = d.tags || '';
+        openModal('modal-edit-hero');
+    }
+
+    function saveTitle() {
+        AppState.data.siteTitle = document.getElementById('edit-site-title').value;
+        localStorage.setItem('db', JSON.stringify(AppState.data));
+        closeModals();
+        if (typeof updateGlobalUI === 'function') updateGlobalUI();
+    }
+
+    function saveFooter() {
+        AppState.data.footer_copy_sv = document.getElementById('edit-footer-copy-sv').value;
+        AppState.data.footer_copy_en = document.getElementById('edit-footer-copy-en').value;
+        AppState.data.footer_tech_sv = document.getElementById('edit-footer-tech-sv').value;
+        AppState.data.footer_tech_en = document.getElementById('edit-footer-tech-en').value;
+        localStorage.setItem('db', JSON.stringify(AppState.data));
+        closeModals();
+        if (typeof updateGlobalUI === 'function') updateGlobalUI();
+    }
+
+    function saveHero() {
+        AppState.data.name = document.getElementById('edit-hero-name').value;
+        AppState.data.role_sv = document.getElementById('edit-hero-role-sv').value;
+        AppState.data.role_en = document.getElementById('edit-hero-role-en').value;
+        AppState.data.live_sv = document.getElementById('edit-hero-live-sv').value;
+        AppState.data.live_en = document.getElementById('edit-hero-live-en').value;
+        AppState.data.study_sv = document.getElementById('edit-hero-study-sv').value;
+        AppState.data.study_en = document.getElementById('edit-hero-study-en').value;
+        AppState.data.tags = document.getElementById('edit-hero-tags').value;
+        localStorage.setItem('db', JSON.stringify(AppState.data));
+        closeModals();
+        renderPortfolio();
+    }
+
+    function saveProject() {
+        const idx = document.getElementById('edit-idx').value;
+        if (!AppState.data.projects) AppState.data.projects = [...PORTFOLIO_DEFAULTS.projects];
+        let p = AppState.data.projects[idx];
+        if (p) {
+            p.title_sv = document.getElementById('edit-title-sv').value;
+            p.title_en = document.getElementById('edit-title-en').value;
+            p.img = document.getElementById('edit-img').value;
+            p.desc_sv = document.getElementById('edit-desc-sv').value;
+            p.desc_en = document.getElementById('edit-desc-en').value;
+            p.details_sv = document.getElementById('edit-details-sv').value;
+            p.details_en = document.getElementById('edit-details-en').value;
+            p.tags = document.getElementById('edit-proj-tags').value;
+            p.appLink = document.getElementById('edit-app-link').value;
+            p.extLink = document.getElementById('edit-ext-link').value;
+            localStorage.setItem('db', JSON.stringify(AppState.data));
+        }
+        closeModals();
+        const portView = document.getElementById('view-portfolio');
+        if (portView && portView.classList.contains('active')) {
+            renderPortfolio();
+        } else {
+            renderDetails(idx);
+        }
+    }
+
+    function handleProfileUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            AppState.data.profileImg = evt.target.result;
+            localStorage.setItem('db', JSON.stringify(AppState.data));
+            renderPortfolio();
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    }
+
+    function triggerProjectImageUpload(idx) {
+        imageUploadTarget = idx;
+        document.getElementById('project-image-upload').click();
+    }
+
+    function triggerDetailsImageUpload() {
+        imageUploadTarget = AppState.currentProjectIdx;
+        document.getElementById('project-image-upload').click();
+    }
+
+    function handleProjectUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            if (!AppState.data.projects) AppState.data.projects = [...PORTFOLIO_DEFAULTS.projects];
+            if (AppState.data.projects[imageUploadTarget]) {
+                AppState.data.projects[imageUploadTarget].img = evt.target.result;
+                localStorage.setItem('db', JSON.stringify(AppState.data));
+                const portView = document.getElementById('view-portfolio');
+                if (portView && portView.classList.contains('active')) {
+                    renderPortfolio();
+                } else {
+                    renderDetails(imageUploadTarget);
+                }
+            }
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    }
 </script>
 {% endblock %}
