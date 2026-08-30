@@ -1,26 +1,23 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi import APIRouter, Request
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from PIL import Image
 from io import BytesIO
 from pathlib import Path
 from tensorflow.keras.models import load_model
+from scipy.ndimage import label
 import base64
 import numpy as np
-import os
 
-# Adjusted base dir to step out of routers/
+router = APIRouter()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 MODELS_DIR = BASE_DIR / "models"
-STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
 
-ocr_app = FastAPI(title="Character Recognition API", version="2.0.0")
-ocr_app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 loaded_models = {}
+
 TARGET_MODELS = [
     "emnist_byclass_model.keras",
     "swe_chars_model.keras",
@@ -31,13 +28,11 @@ if MODELS_DIR.exists() and MODELS_DIR.is_dir():
         model_path = MODELS_DIR / model_name
         if model_path.exists() and model_path.is_file():
             try:
-                # ORIGINAL LOGIC
                 model = load_model(model_path)
                 loaded_models[model_name] = model
                 model.predict(np.zeros((1, 28, 28, 1)), verbose=0)
-                print(f"Loaded model: {model_name}")
-            except Exception as e:
-                print(f"Error loading {model_name}: {e}")
+            except Exception:
+                pass
 
 SWE_MAPPING = {0: 'Å', 1: 'Ä', 2: 'Ö', 3: 'å', 4: 'ä', 5: 'ö', 6: 'null'}
 
@@ -59,64 +54,69 @@ def predict_single_model(model_name: str, pixels_28x28: np.ndarray):
     model = loaded_models.get(model_name)
     if model is None: return []
 
-    # ORIGINAL LOGIC
     model_input = pixels_28x28.reshape(1, 28, 28, 1) / 255.0
     probs = model.predict(model_input, verbose=0)[0]
     options = []
 
     if "swe_chars" in model_name:
-        best_idx = int(np.argmax(probs))
-        best_char = SWE_MAPPING.get(best_idx, str(best_idx))
-        if best_char.lower() == "null": return []
-        
         top_indices = np.argsort(probs)[::-1]
         for idx in top_indices:
             char = SWE_MAPPING.get(int(idx), str(idx))
             if char.lower() != "null" and probs[idx] >= 0.15:
-                options.append(char)
-        if not options and best_char.lower() != "null": options.append(best_char)
+                options.append((char, float(probs[idx])))
         return options[:3]
 
-    top_3_indices = np.argsort(probs)[-3:][::-1]
-    for i in top_3_indices:
-        if probs[i] >= 0.10: options.append(emnist_idx_to_char(int(i)))
-    if not options: options.append(emnist_idx_to_char(int(top_3_indices[0])))
+    top_indices = np.argsort(probs)[-3:][::-1]
+    for i in top_indices:
+        if probs[i] >= 0.10: 
+            options.append((emnist_idx_to_char(int(i)), float(probs[i])))
+    
+    if not options: 
+        options.append((emnist_idx_to_char(int(top_indices[0])), float(probs[top_indices[0]])))
+        
     return options[:3]
 
 def predict_all_models(pixels_28x28: np.ndarray):
+    swe_options = []
+    emnist_options = []
+    
     if "swe_chars_model.keras" in loaded_models:
         swe_options = predict_single_model("swe_chars_model.keras", pixels_28x28)
-        if swe_options: return swe_options
+        
+    if swe_options:
+        return [swe_options[0][0]]
+        
     if "emnist_byclass_model.keras" in loaded_models:
-        return predict_single_model("emnist_byclass_model.keras", pixels_28x28)
-    return []
+        emnist_options = predict_single_model("emnist_byclass_model.keras", pixels_28x28)
+        
+    candidates = []
+    seen = set()
+        
+    for char, prob in emnist_options:
+        if char.lower() not in seen and len(candidates) < 4:
+            candidates.append(char)
+            seen.add(char.lower())
+            
+    return candidates
 
 class PredictRequest(BaseModel):
     image: str
     model: str = "Alla modeller"
     lang: str = "SWE"
 
-@ocr_app.get("/")
-async def serve_index():
-    index_file = TEMPLATES_DIR / "ocr.html"
-    if not index_file.exists(): raise HTTPException(status_code=404, detail="OCR App UI not found.")
-    return FileResponse(str(index_file), media_type="text/html")
+@router.get("/ocr")
+async def serve_ocr(request: Request):
+    return templates.TemplateResponse(
+        request=request, 
+        name="ocr.html", 
+        context={"page_title": "Teckenigenkänning / AI OCR", "back_url": "/"}
+    )
 
-@ocr_app.get("/api/models")
-async def get_models():
-    models_list = []
-    for model_name in loaded_models.keys():
-        clean_name = model_name.replace(".keras", "").replace("_", " ").title()
-        models_list.append(clean_name)
-    models_list.append("Alla modeller")
-    return {"models": models_list}
-
-@ocr_app.post("/api/predict")
+@router.post("/api/predict")
 async def predict_character(req: PredictRequest):
     if not req.image:
         return {"status": "error", "message": "Ingen bild mottogs / No image provided."}
 
-    # ORIGINAL LOGIC
     try:
         raw_b64 = req.image
         if "," in raw_b64: raw_b64 = raw_b64.split(",", 1)[1]
@@ -130,6 +130,17 @@ async def predict_character(req: PredictRequest):
 
     threshold = min(30, np.percentile(arr, 95) * 0.4) if arr.max() > 0 else 30
     arr[arr < threshold] = 0
+
+    labeled_array, num_features = label(arr > 0)
+    if num_features > 0:
+        sizes = np.bincount(labeled_array.ravel())
+        sizes[0] = 0 
+        largest_size = sizes.max()
+        min_size = max(15, largest_size * 0.005) 
+        
+        for i in range(1, num_features + 1):
+            if sizes[i] < min_size:
+                arr[labeled_array == i] = 0
 
     coords = np.argwhere(arr > 0)
     if coords.size == 0:
@@ -155,18 +166,15 @@ async def predict_character(req: PredictRequest):
     y = (28 - square_img.height) // 2
     img_28.paste(square_img, (x, y))
 
-    buffered = BytesIO()
-    img_28.save(buffered, format="PNG")
-    preview_b64 = "data:image/png;base64," + base64.b64encode(buffered.getvalue()).decode("utf-8")
-
     pixels = np.array(img_28)
     real_model_name = resolve_model_filename(req.model)
 
     if real_model_name == "Alla modeller":
         candidates = predict_all_models(pixels)
     elif real_model_name in loaded_models:
-        candidates = predict_single_model(real_model_name, pixels)
+        raw_candidates = predict_single_model(real_model_name, pixels)
+        candidates = [c[0] for c in raw_candidates]
     else:
         candidates = []
 
-    return {"status": "ok", "preview": preview_b64, "candidates": candidates}
+    return {"status": "ok", "candidates": candidates}

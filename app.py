@@ -1,48 +1,59 @@
-from contextlib import asynccontextmanager
+import os
+import platform
+import subprocess
+import socket
+import time
+import logging
+
+# Suppress TensorFlow logs before importing anything that might trigger TF
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+logging.getLogger('tensorflow').setLevel(logging.FATAL)
+
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 import uvicorn
 
-from database import init_db
+# Import our modularized routers
 from routers.portfolio import router as portfolio_router
-from routers.wordle import wordle_app
-from routers.ocr import ocr_app
+from routers.ocr import router as ocr_router
+from routers.wordle import router as wordle_router
 
-BASE_DIR = Path(__file__).resolve().parent
-STATIC_DIR = BASE_DIR / "static"
+app = FastAPI(title="Portfolio SPA Architecture")
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Initialize SQLite database exactly as originally written
-    db_info = init_db()
-    print(f"[Lifespan] Database '{db_info.get('database_file')}' initialized successfully at {db_info.get('db_path')}")
-    yield
+# Mount the static directory so images like rfr_1.png load correctly
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-app = FastAPI(
-    title="Name Surname Portfolio API",
-    description="FastAPI backend powered by local SQLite database serving portfolio assets, contact messages, admin auth, and avatar persistence.",
-    version="1.0.0",
-    lifespan=lifespan,
-)
-
-# Enable CORS for local development and external integrations
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Mount Static Files (CSS, JS, Assets)
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-
-# Mount Routers and Sub-Projects
+# Register the routes
 app.include_router(portfolio_router)
-app.mount("/wordle", wordle_app)
-app.mount("/ocr", ocr_app)
+app.include_router(ocr_router)
+app.include_router(wordle_router)
+
+def kill_port(port: int):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if s.connect_ex(('127.0.0.1', port)) != 0:
+            return
+
+    try:
+        if platform.system() == "Windows":
+            result = subprocess.run(f"netstat -ano | findstr :{port} | findstr LISTENING", shell=True, capture_output=True, text=True)
+            for line in result.stdout.strip().split('\n'):
+                if line:
+                    pid = line.strip().split()[-1]
+                    subprocess.run(f"taskkill /F /PID {pid}", shell=True, capture_output=True)
+        else:
+            subprocess.run(f"lsof -t -i:{port} | xargs kill -9", shell=True, capture_output=True)
+        time.sleep(1)
+    except Exception:
+        pass
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="127.0.0.1", port=3000, reload=True)
+    PORT = 3001
+    
+    kill_port(PORT)
+    
+    print("\n[Application Architecture Loaded Successfully]")
+    print(f"http://127.0.0.1:{PORT}\n")
+    
+    uvicorn.run(app, host="127.0.0.1", port=PORT, log_level="warning")

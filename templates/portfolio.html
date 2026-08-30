@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block extra_styles %}
+<style>
+    .view { opacity: 0; transform: translateY(20px) scale(0.98); transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+    .view.active { opacity: 1; transform: translateY(0) scale(1); animation: viewFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    
+    .text-gradient { background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-image: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); }
+    .profile-ring { position: absolute; inset: -4px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); z-index: -1; opacity: 0.7; animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulse-ring { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
+    @keyframes viewFadeIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="view-portfolio" class="view active">
+    <div class="text-center mb-20 mt-12 relative flex flex-col items-center">
+        <div class="relative mb-8 group inline-block">
+            <div class="profile-ring"></div>
+            <img id="hero-img" class="w-40 h-40 sm:w-48 sm:h-48 rounded-full object-cover border-[6px] border-white dark:border-slate-900 shadow-xl relative z-10 bg-slate-100 dark:bg-slate-800 transition-transform duration-500 group-hover:scale-[1.02]" src="" alt="Profile">
+            <button class="admin-only absolute bottom-2 right-2 bg-brand-600 text-white w-10 h-10 rounded-full items-center justify-center shadow-lg hover:scale-110 hover:bg-brand-500 transition-all z-20" title="Ändra Profilbild" onclick="document.getElementById('profile-upload').click()">📷</button>
+            <input type="file" id="profile-upload" class="hidden" accept="image/*" onchange="handleProfileUpload(event)">
+        </div>
+
+        <div class="relative inline-block w-full max-w-3xl">
+            <button class="admin-only absolute top-0 -right-4 md:-right-12 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 w-8 h-8 rounded-full items-center justify-center shadow-lg hover:scale-110 transition-transform" onclick="openEditHero()">⚙️</button>
+            <h1 id="hero-name" class="text-5xl sm:text-7xl font-extrabold tracking-tighter mb-4 text-slate-900 dark:text-white drop-shadow-sm">Laddar...</h1>
+            <p id="hero-role" class="text-xl sm:text-2xl text-gradient font-semibold mb-3">Laddar...</p>
+            <div class="flex flex-col items-center justify-center gap-2.5 text-md sm:text-lg text-slate-500 dark:text-slate-400 font-medium mb-8 mt-4">
+                <div class="flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg><span id="hero-live">Laddar...</span></div>
+                <div class="flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 11.2V14a8 8 0 0016 0v-2.8M2 9l10-5 10 5-10 5L2 9z"></path></svg><span id="hero-study">Laddar...</span></div>
+            </div>
+            <div id="hero-tags" class="flex flex-wrap justify-center gap-2.5 max-w-2xl mx-auto"></div>
+        </div>
+    </div>
+    
+    <div class="flex items-center justify-between mb-8">
+        <h2 data-sv="Utvalda Projekt" data-en="Featured Projects" class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Utvalda Projekt</h2>
+        <div class="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent dark:from-slate-700 ml-6"></div>
+    </div>
+    
+    <input type="file" id="project-image-upload" class="hidden" accept="image/*" onchange="handleProjectUpload(event)">
+    <div id="project-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"></div>
+</div>
+
+<div id="view-details" class="view hidden max-w-4xl mx-auto mb-12">
+    <div class="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6 sm:p-10 shadow-glass dark:shadow-glass-dark border border-white/40 dark:border-slate-700/50 transition-colors duration-500">
+        <button id="details-cogwheel" class="admin-only absolute top-6 right-6 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 w-10 h-10 rounded-full items-center justify-center shadow-lg hover:scale-110 transition-transform z-10 text-lg">⚙️</button>
+        <div class="overflow-hidden rounded-2xl mb-10 shadow-lg relative group">
+            <div class="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent transition-colors z-10 pointer-events-none"></div>
+            <img id="det-img" class="w-full h-[400px] object-cover transform group-hover:scale-105 transition-transform duration-700" src="" alt="Project">
+            <button class="admin-only absolute bottom-4 right-4 bg-brand-600 text-white w-12 h-12 rounded-full items-center justify-center shadow-lg z-20 hover:scale-110 transition-transform" onclick="triggerDetailsImageUpload()">📷</button>
+        </div>
+        <h1 id="det-title" class="text-4xl sm:text-5xl font-extrabold mb-6 tracking-tight text-slate-900 dark:text-white">Titel</h1>
+        <div id="det-tags" class="flex flex-wrap gap-2 mb-8"></div>
+        <div class="prose prose-lg dark:prose-invert max-w-none mb-10">
+            <p id="det-desc" class="text-slate-600 dark:text-slate-300 leading-relaxed text-lg sm:text-xl font-medium"></p>
+            <div id="det-details" class="text-slate-500 dark:text-slate-400 leading-relaxed mt-6"></div>
+        </div>
+        <div id="det-actions" class="flex flex-wrap gap-4 pt-6 border-t border-slate-200 dark:border-slate-700/50"></div>
+    </div>
+</div>
+
+<!-- Extra Edit Modals Specfic to Portfolio -->
+<div id="modal-edit-title" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-sm shadow-2xl border border-white/20 dark:border-slate-700/50 relative scale-95 opacity-0 transition-all duration-300 transform">
+        <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Redigera Sidtitel</h2>
+        <div class="space-y-4 mb-8"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Sidtitel / Site Title</label><input type="text" id="edit-site-title" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
+        <div class="flex gap-3"><button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveTitle()">Spara</button><button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button></div>
+    </div>
+</div>
+<div id="modal-edit-footer" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-lg shadow-2xl border border-white/20 dark:border-slate-700/50 max-h-[90vh] overflow-y-auto relative scale-95 opacity-0 transition-all duration-300 transform">
+        <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Redigera Sidfot</h2>
+        <div class="space-y-5 mb-8">
+            <div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Upphovsrätt (SV)</label><input type="text" id="edit-footer-copy-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
+            <div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Upphovsrätt (EN)</label><input type="text" id="edit-footer-copy-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
+            <div class="border-t border-slate-200 dark:border-slate-700 pt-5"><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Teknik & Hosting (SV)</label><input type="text" id="edit-footer-tech-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
+            <div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Teknik & Hosting (EN)</label><input type="text" id="edit-footer-tech-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
+        </div>
+        <div class="flex gap-3"><button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveFooter()">Spara Ändringar</button><button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button></div>
+    </div>
+</div>
+<div id="modal-edit-hero" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-lg shadow-2xl border border-white/20 dark:border-slate-700/50 max-h-[90vh] overflow-y-auto relative scale-95 opacity-0 transition-all duration-300 transform">
+        <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Redigera Profil</h2>
+        <div class="space-y-5 mb-8">
+            <div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Namn / Name</label><input type="text" id="edit-hero-name" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
+            <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Roll (SV)</label><input type="text" id="edit-hero-role-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Roll (EN)</label><input type="text" id="edit-hero-role-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
+            <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Boende (SV)</label><input type="text" id="edit-hero-live-sv" placeholder="t.ex. Bor i City" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Boende (EN)</label><input type="text" id="edit-hero-live-en" placeholder="e.g. Living in City" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
+            <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Studier (SV)</label><input type="text" id="edit-hero-study-sv" placeholder="t.ex. Student i City" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Studier (EN)</label><input type="text" id="edit-hero-study-en" placeholder="e.g. Studying in City" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
+            <div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Taggar (Kommaseparerade)</label><input type="text" id="edit-hero-tags" placeholder="Python, HTML, CSS..." class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
+        </div>
+        <div class="flex gap-3"><button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveHero()">Spara Ändringar</button><button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button></div>
+    </div>
+</div>
+<div id="modal-edit" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-2xl shadow-2xl border border-white/20 dark:border-slate-700/50 max-h-[90vh] overflow-y-auto relative scale-95 opacity-0 transition-all duration-300 transform">
+        <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Redigera Projekt</h2>
+        <input type="hidden" id="edit-idx">
+        <div class="space-y-5 mb-8">
+            <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Titel (SV)</label><input type="text" id="edit-title-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Titel (EN)</label><input type="text" id="edit-title-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
+            <div class="hidden"><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Bild URL (Omslag)</label><input type="text" id="edit-img" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Kort Beskrivning (SV)</label><textarea id="edit-desc-sv" rows="2" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all resize-none"></textarea></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Kort Beskrivning (EN)</label><textarea id="edit-desc-en" rows="2" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all resize-none"></textarea></div></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-700 pt-5"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Lång Beskrivning (SV)</label><textarea id="edit-details-sv" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></textarea></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Lång Beskrivning (EN)</label><textarea id="edit-details-en" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></textarea></div></div>
+            <div class="pt-5 border-t border-slate-200 dark:border-slate-700 mt-5"><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Taggar / Tags (Kommaseparerade)</label><input type="text" id="edit-proj-tags" placeholder="TensorFlow, Keras, React..." class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-700 pt-5 mt-5"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Applikations Länk (Intern)</label><input type="text" id="edit-app-link" placeholder="/wordle" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Extern Länk (URL)</label><input type="text" id="edit-ext-link" placeholder="https://example.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
+        </div>
+        <div class="flex gap-3"><button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveProject()">Spara Ändringar</button><button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const PORTFOLIO_DEFAULTS = {
+        name: "John Doe", role_sv: "Systemutvecklare & Designer", role_en: "Software Developer & Designer",
+        live_sv: "Bor i City", live_en: "Living in City", study_sv: "Student i City", study_en: "Studying in City",
+        tags: "Python, HTML, CSS, JavaScript, Java, AI", profileImg: "", 
+        projects: [
+            { id: "wordle", appLink: "/wordle", title_sv: "Wordle AI", title_en: "Wordle Bot", desc_sv: "Spela eller låt boten lösa spelet åt dig i detta gränssnitt.", desc_en: "Play or let the bot solve the game for you in this interface.", details_sv: "Ett Wordle-klon som stöder autonoma AI-prediktioner.", details_en: "A Wordle clone supporting autonomous AI predictions.", img: "https://images.unsplash.com/photo-1647413669642-83b632598379?auto=format&fit=crop&q=80&w=800", tags: "JavaScript, Algorithms" },
+            { id: "ocr", appLink: "/ocr", title_sv: "AI OCR", title_en: "AI OCR", desc_sv: "Rita bokstäver direkt på canvasen och låt AI tolka dem.", desc_en: "Draw letters directly on the canvas and let AI predict them.", details_sv: "Ett interaktivt verktyg för att identifiera handskrivna tecken.", details_en: "An interactive tool to identify handwritten characters.", img: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&q=80&w=800", tags: "TensorFlow, FastAPI" },
+            { id: "ext", title_sv: "Externt Projekt", title_en: "External Project", desc_sv: "Ett exempel på ett projekt som länkar externt.", desc_en: "An example of a project that links externally.", details_sv: "Ett fristående system för en extern klient.", details_en: "A standalone system for an external client.", img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=800", extLink: "https://example.com", tags: "FastAPI, Azure" }
+        ]
+    };
+
+    let imageUploadTarget = -1;
+
+    // Called automatically by base.html on load
+    function pageInit() {
+        for (let k in PORTFOLIO_DEFAULTS) { 
+            if (AppState.data[k] === undefined) AppState.data[k] = PORTFOLIO_DEFAULTS[k]; 
+        }
+        localStorage.setItem('db', JSON.stringify(AppState.data));
+        navigate('portfolio');
+    }
+
+    // Called automatically by base.html on language change
+    function updateLocalUI() {
+        const portView = document.getElementById('view-portfolio');
+        if (portView && portView.classList.contains('active')) {
+            renderPortfolio();
+        } else if (AppState.currentProjectIdx !== -1) {
+            renderDetails(AppState.currentProjectIdx);
+        }
+    }
+
+    function navigate(viewId, param = -1) {
+        document.querySelectorAll('.view').forEach(v => {
+            v.classList.add('hidden');
+            v.classList.remove('active');
+        }); 
+        
+        const btnBack = document.getElementById('btn-back');
+        
+        if (viewId === 'portfolio') { 
+            if(btnBack) { btnBack.classList.add('hidden'); btnBack.classList.remove('flex'); }
+            const view = document.getElementById('view-portfolio');
+            view.classList.remove('hidden');
+            requestAnimationFrame(() => view.classList.add('active'));
+            renderPortfolio(); 
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        } 
+        else if (viewId === 'details') { 
+            if(btnBack) { btnBack.classList.remove('hidden'); btnBack.classList.add('flex'); }
+            AppState.currentProjectIdx = param; 
+            renderDetails(param); 
+            const view = document.getElementById('view-details');
+            view.classList.remove('hidden');
+            requestAnimationFrame(() => view.classList.add('active'));
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        }
+    }
+
+    function renderPortfolio() {
+        document.getElementById('hero-name').innerText = AppState.data.name; document.getElementById('hero-role').innerText = AppState.lang === 'sv' ? AppState.data.role_sv : AppState.data.role_en;
+        document.getElementById('hero-live').innerText = AppState.lang === 'sv' ? AppState.data.live_sv : AppState.data.live_en; document.getElementById('hero-study').innerText = AppState.lang === 'sv' ? AppState.data.study_sv : AppState.data.study_en;
+        const tagsContainer = document.getElementById('hero-tags'); tagsContainer.innerHTML = '';
+        if (AppState.data.tags) { AppState.data.tags.split(',').forEach(t => { if(t.trim()) tagsContainer.innerHTML += `<span class='px-4 py-1.5 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 text-sm rounded-full font-bold shadow-sm'>${t.trim()}</span>`; }); }
+        const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(AppState.data.name)}&background=e2e8f0&color=0f172a&size=256&font-size=0.33&bold=true`;
+        document.getElementById('hero-img').src = AppState.data.profileImg || fallbackUrl; document.getElementById('hero-img').onerror = function() { this.onerror = null; this.src = fallbackUrl; };
+        
+        let gridHTML = ""; AppState.data.projects.forEach((p, i) => {
+            let title = AppState.lang === 'sv' ? p.title_sv : p.title_en; let desc = AppState.lang === 'sv' ? p.desc_sv : p.desc_en;
+            let tagsHTML = ""; if (p.tags) { let tags = p.tags.split(',').filter(t => t.trim()); if (tags.length) { tagsHTML = "<div class='flex flex-wrap gap-2 mb-5'>" + tags.map(t => `<span class='px-2.5 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-xs font-bold rounded-md'>${t.trim()}</span>`).join('') + "</div>"; } }
+            
+            gridHTML += `<div class='bg-white dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden shadow-glass dark:shadow-glass-dark relative group flex flex-col h-full'>
+                <button class='admin-only absolute top-3 right-3 bg-indigo-500 text-white w-8 h-8 rounded-full items-center justify-center shadow-md z-10 hover:scale-110' onclick='openEdit(${i})'>⚙️</button>
+                <div class="relative">
+                    <img class='w-full h-48 sm:h-56 object-cover bg-slate-100 dark:bg-slate-900 transition-transform duration-700 group-hover:scale-105' src='${p.img}' onerror="this.src='https://placehold.co/600x400'">
+                    <button class="admin-only absolute bottom-2 right-2 bg-brand-600 text-white w-8 h-8 rounded-full items-center justify-center shadow-lg z-20 hover:scale-110" onclick="triggerProjectImageUpload(${i})">📷</button>
+                </div>
+                <div class='p-6 flex flex-col flex-grow z-10 bg-white dark:bg-slate-800/90'>
+                    <h3 class='text-2xl font-bold mb-3 tracking-tight'>${title}</h3>
+                    <p class='text-slate-600 dark:text-slate-400 text-sm mb-4 leading-relaxed flex-grow'>${desc}</p>
+                    ${tagsHTML}
+                    <div class='flex gap-3 mt-auto w-full'>
+                        ${p.appLink ? `<a href='${p.appLink}' class='flex-1 text-center px-2 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl'>${AppState.lang === 'sv' ? 'Öppna App' : 'Open App'}</a>` : ''}
+                        ${p.extLink ? `<a href='${p.extLink}' target='_blank' class='flex-1 text-center px-2 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl'>${AppState.lang === 'sv' ? 'Webbplats' : 'Website'}</a>` : ''}
+                        <button class='flex-1 px-2 py-2.5 bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-white text-sm font-semibold rounded-xl' onclick="navigate('details', ${i})">${AppState.lang === 'sv' ? 'Info' : 'Details'}</button>
+                    </div>
+                </div>
+            </div>`;
+        }); document.getElementById('project-grid').innerHTML = gridHTML;
+    }
+
+    function renderDetails(idx) {
+        let p = AppState.data.projects[idx]; 
+        document.getElementById('det-img').src = p.img; 
+        document.getElementById('det-title').innerText = AppState.lang === 'sv' ? p.title_sv : p.title_en;
+        document.getElementById('det-tags').innerHTML = (p.tags || "").split(',').filter(t => t.trim()).map(t => `<span class='px-3 py-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-sm font-bold rounded-md'>${t.trim()}</span>`).join('');
+        document.getElementById('det-desc').innerText = AppState.lang === 'sv' ? p.desc_sv : p.desc_en; 
+        document.getElementById('det-details').innerText = AppState.lang === 'sv' ? p.details_sv : p.details_en;
+        document.getElementById('details-cogwheel').onclick = function() { openEdit(idx); };
+        
+        let actions = ""; 
+        if (p.appLink) actions += `<a href='${p.appLink}' class='px-8 py-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl'>${AppState.lang === 'sv' ? 'Öppna' : 'Open'}</a>`; 
+        if (p.extLink) actions += `<a href='${p.extLink}' target='_blank' class='px-8 py-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl'>${AppState.lang === 'sv' ? 'Webbplats' : 'Website'}</a>`;
+        document.getElementById('det-actions').innerHTML = actions;
+    }
+
+    function openEdit(idx) { let p = AppState.data.projects[idx]; document.getElementById('edit-idx').value = idx; document.getElementById('edit-title-sv').value = p.title_sv; document.getElementById('edit-title-en').value = p.title_en; document.getElementById('edit-img').value = p.img; document.getElementById('edit-desc-sv').value = p.desc_sv; document.getElementById('edit-desc-en').value = p.desc_en; document.getElementById('edit-details-sv').value = p.details_sv; document.getElementById('edit-details-en').value = p.details_en; document.getElementById('edit-proj-tags').value = p.tags; document.getElementById('edit-app-link').value = p.appLink || ""; document.getElementById('edit-ext-link').value = p.extLink || ""; openModal('modal-edit'); }
+    function openEditTitle() { document.getElementById('edit-site-title').value = AppState.data.siteTitle; openModal('modal-edit-title'); }
+    function openEditFooter() { document.getElementById('edit-footer-copy-sv').value = AppState.data.footer_copy_sv; document.getElementById('edit-footer-copy-en').value = AppState.data.footer_copy_en; document.getElementById('edit-footer-tech-sv').value = AppState.data.footer_tech_sv; document.getElementById('edit-footer-tech-en').value = AppState.data.footer_tech_en; openModal('modal-edit-footer'); }
+    function openEditHero() { document.getElementById('edit-hero-name').value = AppState.data.name; document.getElementById('edit-hero-role-sv').value = AppState.data.role_sv; document.getElementById('edit-hero-role-en').value = AppState.data.role_en; document.getElementById('edit-hero-live-sv').value = AppState.data.live_sv; document.getElementById('edit-hero-live-en').value = AppState.data.live_en; document.getElementById('edit-hero-study-sv').value = AppState.data.study_sv; document.getElementById('edit-hero-study-en').value = AppState.data.study_en; document.getElementById('edit-hero-tags').value = AppState.data.tags; openModal('modal-edit-hero'); }
+    
+    function saveTitle() { AppState.data.siteTitle = document.getElementById('edit-site-title').value; localStorage.setItem('db', JSON.stringify(AppState.data)); closeModals(); updateGlobalUI(); }
+    function saveFooter() { AppState.data.footer_copy_sv = document.getElementById('edit-footer-copy-sv').value; AppState.data.footer_copy_en = document.getElementById('edit-footer-copy-en').value; AppState.data.footer_tech_sv = document.getElementById('edit-footer-tech-sv').value; AppState.data.footer_tech_en = document.getElementById('edit-footer-tech-en').value; localStorage.setItem('db', JSON.stringify(AppState.data)); closeModals(); updateGlobalUI(); }
+    function saveHero() { AppState.data.name = document.getElementById('edit-hero-name').value; AppState.data.role_sv = document.getElementById('edit-hero-role-sv').value; AppState.data.role_en = document.getElementById('edit-hero-role-en').value; AppState.data.live_sv = document.getElementById('edit-hero-live-sv').value; AppState.data.live_en = document.getElementById('edit-hero-live-en').value; AppState.data.study_sv = document.getElementById('edit-hero-study-sv').value; AppState.data.study_en = document.getElementById('edit-hero-study-en').value; AppState.data.tags = document.getElementById('edit-hero-tags').value; localStorage.setItem('db', JSON.stringify(AppState.data)); closeModals(); renderPortfolio(); }
+    function saveProject() { let idx = document.getElementById('edit-idx').value; let p = AppState.data.projects[idx]; p.title_sv = document.getElementById('edit-title-sv').value; p.title_en = document.getElementById('edit-title-en').value; p.img = document.getElementById('edit-img').value; p.desc_sv = document.getElementById('edit-desc-sv').value; p.desc_en = document.getElementById('edit-desc-en').value; p.details_sv = document.getElementById('edit-details-sv').value; p.details_en = document.getElementById('edit-details-en').value; p.tags = document.getElementById('edit-proj-tags').value; p.appLink = document.getElementById('edit-app-link').value; p.extLink = document.getElementById('edit-ext-link').value; localStorage.setItem('db', JSON.stringify(AppState.data)); closeModals(); if (document.getElementById('view-portfolio').classList.contains('active')) renderPortfolio(); else renderDetails(idx); }
+
+    function handleProfileUpload(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { AppState.data.profileImg = e.target.result; localStorage.setItem('db', JSON.stringify(AppState.data)); renderPortfolio(); }; reader.readAsDataURL(file); e.target.value = ''; }
+    function triggerProjectImageUpload(idx) { imageUploadTarget = idx; document.getElementById('project-image-upload').click(); }
+    function triggerDetailsImageUpload() { imageUploadTarget = AppState.currentProjectIdx; document.getElementById('project-image-upload').click(); }
+    function handleProjectUpload(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(evt) { AppState.data.projects[imageUploadTarget].img = evt.target.result; localStorage.setItem('db', JSON.stringify(AppState.data)); if (document.getElementById('view-portfolio').classList.contains('active')) renderPortfolio(); else renderDetails(imageUploadTarget); }; reader.readAsDataURL(file); e.target.value = ''; }
+</script>
+{% endblock %}

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="sv" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title | default('App') }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], display: ['Cal Sans', 'Inter', 'system-ui', 'sans-serif'] },
+                    colors: { brand: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a', 950: '#172554' } },
+                    boxShadow: { 'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)', 'glass-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.3)' }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; min-height: 100vh; }
+        .admin-only { display: none !important; }
+        body.is-admin .admin-only { display: flex !important; }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; border: 3px solid transparent; background-clip: padding-box; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; border-color: transparent; }
+        body { background-image: radial-gradient(at 0% 0%, hsla(210,100%,95%,1) 0px, transparent 50%), radial-gradient(at 100% 0%, hsla(280,100%,95%,1) 0px, transparent 50%); background-color: #f8fafc; }
+        html.dark body { background-image: radial-gradient(at 0% 0%, hsla(220,100%,10%,0.4) 0px, transparent 50%), radial-gradient(at 100% 0%, hsla(280,100%,10%,0.4) 0px, transparent 50%); background-color: #020617; }
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body class="text-slate-800 dark:text-slate-100 transition-colors duration-500 pt-24 overflow-x-hidden">
+
+    <!-- Navigation Menu -->
+    <header class="fixed top-0 left-0 right-0 h-16 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/30 z-50 transition-colors duration-500 shadow-sm">
+        <div class="max-w-6xl mx-auto h-full flex items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-4">
+                <a href="{{ back_url | default('/') }}" id="btn-back" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-all hover:-translate-x-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span data-sv="Tillbaka" data-en="Back">Tillbaka</span>
+                </a>
+                <div class="relative flex items-center group">
+                    <h3 id="site-title-display" class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white pr-2 relative z-10">{{ page_title | default('') }}</h3>
+                    <button class="admin-only absolute -right-6 top-1/2 -translate-y-1/2 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 w-6 h-6 text-[10px] rounded-full items-center justify-center shadow-lg hover:scale-110 transition-transform z-20" title="Redigera Titel" onclick="if(typeof openEditTitle === 'function') openEditTitle()">⚙️</button>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 sm:gap-3">
+                {% block extra_header_buttons %}{% endblock %}
+                <button id="btn-lang" onclick="toggleGlobalLang()" class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 backdrop-blur-sm transition-all shadow-sm">
+                    SV
+                </button>
+                <button onclick="toggleGlobalTheme()" class="w-10 h-10 rounded-full flex items-center justify-center text-lg bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 backdrop-blur-sm transition-all shadow-sm">
+                    🌗
+                </button>
+                <button id="btn-login" onclick="openLogin()" class="px-4 py-2 rounded-full text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all shadow-md transform hover:-translate-y-0.5">
+                    Login
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow w-full mb-12">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-200/50 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/30 backdrop-blur-md relative group">
+        <button class="admin-only absolute -top-4 left-1/2 -translate-x-1/2 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 w-8 h-8 rounded-full items-center justify-center shadow-lg hover:scale-110 transition-transform z-10" title="Redigera Footer" onclick="if(typeof openEditFooter === 'function') openEditFooter()">⚙️</button>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="text-center md:text-left">
+                    <p id="footer-copy" class="text-sm font-medium text-slate-900 dark:text-slate-300"></p>
+                </div>
+                <!-- Ändrade text-slate-500 till text-slate-900 för konsekvent färg -->
+                <div class="text-center md:text-right flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-slate-300">
+                    <svg class="w-4 h-4 shrink-0 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <p id="footer-tech"></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Global Login Modal -->
+    <div id="modal-login" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-sm shadow-2xl border border-white/20 dark:border-slate-700/50 relative scale-95 opacity-0 transition-all duration-300 transform">
+            <h2 class="text-2xl font-bold mb-4 text-slate-900 dark:text-white">Admin Login</h2>
+            <div class="space-y-4 mb-2">
+                <input type="text" id="log-user" placeholder="Username" class="w-full px-5 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium">
+                <input type="password" id="log-pass" placeholder="Password" class="w-full px-5 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium">
+            </div>
+            <p id="login-error" class="text-rose-500 dark:text-rose-400 text-sm font-bold text-center h-5 mb-4 opacity-0 transition-opacity">Fel lösenord!</p>
+            <div class="flex flex-col gap-3">
+                <button class="w-full px-4 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:shadow-lg transition-all dark:bg-white dark:text-slate-900" onclick="doLogin()">Logga in</button>
+                <button class="w-full px-4 py-3.5 bg-transparent text-slate-600 dark:text-slate-400 font-bold rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" onclick="closeModals()">Avbryt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global State & Logic -->
+    <script>
+        const GLOBAL_DEFAULT = {
+            siteTitle: "SPA Portfolio",
+            footer_copy_sv: "© 2026 John Doe. Alla rättigheter förbehållna.",
+            footer_copy_en: "© 2026 John Doe. All rights reserved.",
+            footer_tech_sv: "Byggd med FastAPI & React. Säkert hostad på Microsoft Azure.",
+            footer_tech_en: "Powered by FastAPI & React. Securely hosted on Microsoft Azure."
+        };
+
+        // Enforce Swedish as Default Language
+        let AppState = {
+            lang: localStorage.getItem('lang') || 'sv',
+            isAdmin: localStorage.getItem('isAdmin') === 'true',
+            data: {}
+        };
+
+        function initGlobalData() {
+            let db = JSON.parse(localStorage.getItem('db')) || {};
+            for (let k in GLOBAL_DEFAULT) {
+                if (db[k] === undefined) db[k] = GLOBAL_DEFAULT[k];
+            }
+            AppState.data = db;
+            localStorage.setItem('db', JSON.stringify(db));
+        }
+
+        // Force Default Light Theme Everywhere
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+
+        function toggleGlobalLang() {
+            AppState.lang = AppState.lang === 'sv' ? 'en' : 'sv';
+            localStorage.setItem('lang', AppState.lang);
+            updateGlobalUI();
+        }
+
+        function toggleGlobalTheme() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        function updateGlobalUI() {
+            document.documentElement.lang = AppState.lang;
+            document.body.classList.toggle('is-admin', AppState.isAdmin);
+            
+            const btnLogin = document.getElementById('btn-login');
+            if (btnLogin) btnLogin.innerText = AppState.isAdmin ? 'Logout' : 'Login';
+            
+            const btnLang = document.getElementById('btn-lang');
+            if (btnLang) btnLang.innerText = AppState.lang === 'sv' ? 'SV' : 'EN';
+            
+            const siteTitle = document.getElementById('site-title-display');
+            if (siteTitle) siteTitle.innerText = AppState.data.siteTitle || GLOBAL_DEFAULT.siteTitle;
+            
+            const footerCopy = document.getElementById('footer-copy');
+            if (footerCopy) footerCopy.innerHTML = AppState.lang === 'sv' ? AppState.data.footer_copy_sv : AppState.data.footer_copy_en;
+            
+            const footerTech = document.getElementById('footer-tech');
+            if (footerTech) footerTech.innerHTML = AppState.lang === 'sv' ? AppState.data.footer_tech_sv : AppState.data.footer_tech_en;
+            
+            document.querySelectorAll('[data-sv]').forEach(el => { 
+                el.innerText = el.getAttribute('data-' + AppState.lang); 
+            });
+
+            // Trigger local views to update their translations
+            if (typeof updateLocalUI === 'function') updateLocalUI();
+        }
+
+        function openModal(id) { 
+            const m = document.getElementById(id); m.classList.remove('hidden'); m.classList.add('flex'); 
+            requestAnimationFrame(() => { m.querySelector('div').classList.remove('scale-95', 'opacity-0'); m.querySelector('div').classList.add('scale-100', 'opacity-100'); }); 
+        }
+
+        function closeModals() { 
+            document.querySelectorAll('.fixed.inset-0').forEach(m => { 
+                const inner = m.querySelector('div'); 
+                if(inner) { inner.classList.remove('scale-100', 'opacity-100'); inner.classList.add('scale-95', 'opacity-0'); } 
+                setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300); 
+            }); 
+        }
+
+        function openLogin() {
+            if (AppState.isAdmin) {
+                AppState.isAdmin = false;
+                localStorage.setItem('isAdmin', 'false');
+                updateGlobalUI();
+            } else {
+                document.getElementById('log-user').value = ''; 
+                document.getElementById('log-pass').value = '';
+                document.getElementById('login-error').classList.remove('opacity-100');
+                openModal('modal-login');
+            }
+        }
+
+        async function doLogin() {
+            const u = document.getElementById('log-user').value.trim();
+            const p = document.getElementById('log-pass').value;
+            const err = document.getElementById('login-error');
+            try {
+                const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username: u, password: p}) });
+                if(res.ok) { AppState.isAdmin = true; localStorage.setItem('isAdmin', 'true'); closeModals(); updateGlobalUI(); } 
+                else { err.classList.add('opacity-100'); }
+            } catch(e) { err.textContent = "Error"; err.classList.add('opacity-100'); }
+        }
+
+        // Initialize Everything cleanly
+        document.addEventListener('DOMContentLoaded', () => {
+            initGlobalData();
+            updateGlobalUI();
+            if (typeof pageInit === 'function') pageInit();
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

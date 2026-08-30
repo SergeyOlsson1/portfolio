@@ -1,1532 +1,329 @@
-<!DOCTYPE html>
-<html lang="sv">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teckenigenkänning / AI OCR</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-/* ==========================================================================
-   Teckenigenkänning / Modern AI OCR - Design System
-   ========================================================================== */
-
-:root {
-    --bg-main: #f8fafc;
-    --bg-card: #ffffff;
-    --bg-inner: #f1f5f9;
-    --bg-card-hover: #ffffff;
-    
-    --border-glass: #e2e8f0;
-    --border-glass-hover: #cbd5e1;
-    --border-accent: #0284c7;
-
-    --primary: #0284c7;
-    --primary-hover: #0369a1;
-    --primary-gradient: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%);
-    --primary-shadow: 0 10px 25px rgba(2, 132, 199, 0.35);
-    --primary-shadow-hover: 0 14px 35px rgba(2, 132, 199, 0.5);
-
-    --accent-glow: rgba(2, 132, 199, 0.25);
-    --hero-gradient: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%);
-
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --text-dim: #94a3b8;
-
-    --radius-xl: 24px;
-    --radius-lg: 16px;
-    --radius-md: 12px;
-    --radius-sm: 8px;
-    --radius-pill: 9999px;
-
-    --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-
-    --bg-image: radial-gradient(circle at 15% 50%, #f0f9ff, transparent 25%), radial-gradient(circle at 85% 30%, #ecfdf5, transparent 25%);
-}
-
-.dark {
-    --bg-main: #030712;
-    --bg-card: rgba(17, 24, 39, 0.75);
-    --bg-inner: rgba(0, 0, 0, 0.4);
-    --bg-card-hover: rgba(31, 41, 55, 0.85);
-    
-    --border-glass: rgba(31, 41, 55, 0.8);
-    --border-glass-hover: rgba(55, 65, 81, 0.6);
-    --border-accent: #38bdf8;
-
-    --primary: #0284c7;
-    --primary-hover: #0369a1;
-    --primary-gradient: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%);
-    --primary-shadow: 0 10px 25px rgba(2, 132, 199, 0.35);
-    --primary-shadow-hover: 0 14px 35px rgba(2, 132, 199, 0.5);
-
-    --accent-glow: rgba(2, 132, 199, 0.25);
-    --hero-gradient: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%);
-
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --text-dim: #64748b;
-
-    --bg-image: radial-gradient(circle at 15% 50%, rgba(12, 74, 110, 0.3), transparent 25%), radial-gradient(circle at 85% 30%, rgba(6, 78, 59, 0.3), transparent 25%);
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    min-height: 100vh;
-    font-family: var(--font-body);
-    background-color: var(--bg-main);
-    background-image: var(--bg-image);
-    background-attachment: fixed;
-    color: var(--text-main);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 30px 16px;
-    overflow-x: hidden;
-}
-
-.app-container {
-    width: 100%;
-    max-width: 820px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-/* ==========================================================================
-   Top Navigation Bar
-   ========================================================================== */
-
-.top-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    padding: 8px 6px;
-}
-
-.brand-group {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.brand-badge {
-    background: var(--primary-gradient);
-    color: #ffffff;
-    font-family: var(--font-heading);
-    font-weight: 800;
-    font-size: 0.88rem;
-    padding: 6px 12px;
-    border-radius: var(--radius-sm);
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
-    letter-spacing: 0.05em;
-    flex-shrink: 0;
-}
-
-.brand-title {
-    font-family: var(--font-heading);
-    font-size: clamp(1.6rem, 3.2vw, 2.3rem);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: var(--text-main);
-    line-height: 1.15;
-}
-
-.brand-subtitle {
-    color: var(--text-muted);
-    font-size: clamp(0.85rem, 1.6vw, 0.98rem);
-    font-weight: 400;
-    margin-top: 2px;
-}
-
-.lang-toggle {
-    display: flex;
-    background: var(--bg-inner);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border-glass);
-    border-radius: var(--radius-pill);
-    padding: 3px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    flex-shrink: 0;
-    gap: 2px;
-}
-
-.lang-btn {
-    border: none;
-    background: transparent;
-    color: var(--text-muted);
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 0.82rem;
-    padding: 6px 14px;
-    border-radius: var(--radius-pill);
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.lang-btn:hover {
-    color: #0284c7 !important;
-    transform: scale(1.05);
-}
-
-
-.lang-btn.active {
-    background: var(--primary-gradient) !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4) !important;
-    font-weight: 800;
-}
-
-/* ==========================================================================
-   Main Studio Card (2-Panel Unified Container)
-   ========================================================================== */
-
-.studio-card {
-    background: var(--bg-card);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid var(--border-glass);
-    border-radius: var(--radius-xl);
-    padding: 24px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-    display: grid;
-    grid-template-columns: 360px 1fr;
-    gap: 24px;
-    align-items: start;
-}
-
-.panel-header {
-    margin-bottom: 12px;
-}
-
-.result-heading {
-    font-family: var(--font-heading);
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--text-main);
-    letter-spacing: -0.01em;
-}
-
-/* ==========================================================================
-   Left Panel: Input Studio (Draw & Image)
-   ========================================================================== */
-
-.panel-input {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.mode-tabs {
-    display: flex;
-    gap: 6px;
-    background: var(--bg-inner);
-    padding: 4px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-glass);
-}
-
-.tab-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border: none;
-    background: transparent;
-    color: var(--text-muted);
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 0.92rem;
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.tab-btn:hover {
-    color: var(--text-main);
-}
-
-.tab-btn.active {
-    background: var(--bg-card);
-    color: var(--text-main);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid var(--border-glass);
-}
-
-.dark .tab-btn.active {
-    background: rgba(255, 255, 255, 0.14);
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.mode-container {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-}
-
-.mode-container.active {
-    display: flex;
-}
-
-.canvas-wrapper {
-    position: relative;
-    width: 320px;
-    height: 320px;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    background: #000000;
-    border: 1px solid var(--border-glass);
-    box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.1);
-    cursor: crosshair;
-}
-
-#paint-canvas {
-    width: 320px;
-    height: 320px;
-    display: block;
-    touch-action: none;
-}
-
-.canvas-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 320px;
-    padding: 6px 10px;
-    background: var(--bg-inner);
-    border: 1px solid var(--border-glass);
-    border-radius: var(--radius-md);
-}
-
-.tool-group {
-    display: flex;
-    gap: 6px;
-}
-
-.tool-btn {
-    border: 1px solid var(--border-glass);
-    background: var(--bg-card);
-    color: var(--text-muted);
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 0.85rem;
-    padding: 6px 12px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all 0.18s ease;
-}
-
-.tool-btn:hover {
-    background: rgba(255, 255, 255, 0.14);
-    color: var(--text-main);
-}
-
-.tool-btn.active {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: #ffffff;
-    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
-}
-
-.tool-btn.clear-btn:hover {
-    background: rgba(239, 68, 68, 0.22);
-    border-color: rgba(239, 68, 68, 0.45);
-    color: #fca5a5;
-}
-
-/* ==========================================================================
-   Image Mode
-   ========================================================================== */
-
-.image-upload-wrapper {
-    width: 320px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-
-.drop-zone {
-    width: 100%;
-    min-height: 260px;
-    border: 2px dashed var(--border-glass);
-    border-radius: var(--radius-lg);
-    background: var(--bg-inner);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.drop-zone:hover, .drop-zone.dragover {
-    border-color: var(--primary);
-    background: rgba(99, 102, 241, 0.08);
-}
-
-.file-input-hidden {
-    display: none;
-}
-
-.upload-icon {
-    font-size: 2.2rem;
-    margin-bottom: 8px;
-    display: inline-block;
-}
-
-.upload-hint {
-    color: var(--text-dim);
-    font-size: 0.85rem;
-    margin-top: 4px;
-}
-
-.paste-btn {
-    width: 100%;
-    padding: 10px 14px;
-    font-size: 0.88rem;
-    background: rgba(2, 132, 199, 0.1);
-    border: 1px solid rgba(2, 132, 199, 0.3);
-    color: var(--primary);
-    font-weight: 700;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.paste-btn:hover {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
-}
-
-.image-preview-wrapper {
-    width: 320px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.image-preview-stage {
-    width: 100%;
-    height: 270px;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    border: 1px solid var(--border-glass);
-    background: #000000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-}
-
-#source-image {
-    max-width: 100%;
-    max-height: 270px;
-    object-fit: contain;
-    display: block;
-}
-
-.image-preview-toolbar {
-    width: 100%;
-    display: flex;
-    gap: 8px;
-    justify-content: space-between;
-}
-
-.image-preview-toolbar .tool-btn {
-    flex: 1;
-    padding: 8px 10px;
-}
-
-/* ==========================================================================
-   Right Panel: AI Recognition & Hero Results
-   ========================================================================== */
-
-.panel-result {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    height: 100%;
-}
-
-.primary-btn {
-    width: 100%;
-    min-height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: none;
-    border-radius: var(--radius-md);
-    background: var(--primary-gradient);
-    color: #ffffff;
-    font-family: var(--font-heading);
-    font-size: 1.12rem;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: var(--primary-shadow);
-    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.primary-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--primary-shadow-hover);
-    filter: brightness(1.08);
-}
-
-.primary-btn:active {
-    transform: translateY(1px);
-}
-
-.primary-btn.loading {
-    opacity: 0.8;
-    pointer-events: none;
-}
-
-.result-display-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Empty / Ready State */
-.result-empty-state {
-    flex: 1;
-    min-height: 260px;
-    background: var(--bg-inner);
-    border: 1px dashed var(--border-glass);
-    border-radius: var(--radius-lg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 20px;
-    text-align: center;
-    gap: 10px;
-}
-
-.empty-icon-glow {
-    font-size: 2.6rem;
-    animation: gentleFloat 3s ease-in-out infinite;
-}
-
-@keyframes gentleFloat {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-6px); }
-}
-
-.empty-title {
-    font-family: var(--font-heading);
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-main);
-}
-
-.empty-desc {
-    color: var(--text-muted);
-    font-size: 0.88rem;
-    line-height: 1.45;
-}
-
-/* Active Result Hero Card */
-.result-active-state {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    animation: slideUpFade 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes slideUpFade {
-    0% { opacity: 0; transform: translateY(12px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
-.hero-result-card {
-    background: radial-gradient(circle at top, rgba(99, 102, 241, 0.2), transparent 70%), var(--bg-inner);
-    border: 2px solid var(--border-accent);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 25px rgba(99, 102, 241, 0.2);
-    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-}
-
-.hero-result-card:hover {
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), 0 0 35px rgba(99, 102, 241, 0.35);
-}
-
-.hero-badge-tag {
-    background: rgba(99, 102, 241, 0.25);
-    border: 1px solid rgba(99, 102, 241, 0.45);
-    color: #c7d2fe;
-    font-family: var(--font-heading);
-    font-size: 0.78rem;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: var(--radius-pill);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 8px;
-}
-
-.hero-char {
-    font-family: var(--font-heading);
-    font-size: 4.8rem;
-    font-weight: 800;
-    line-height: 1;
-    background: var(--hero-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 40px rgba(99, 102, 241, 0.6);
-    margin: 8px 0;
-}
-
-.copy-hint {
-    font-size: 0.82rem;
-    color: var(--text-dim);
-    font-weight: 600;
-    transition: color 0.18s ease;
-}
-
-.hero-result-card:hover .copy-hint {
-    color: #e0e7ff;
-}
-
-.alt-candidates-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.alt-candidates-title {
-    font-size: 0.84rem;
-    font-weight: 600;
-    color: var(--text-muted);
-}
-
-.alt-candidate-buttons {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.alt-candidate-btn {
-    flex: 1;
-    min-width: 60px;
-    padding: 10px 14px;
-    background: var(--bg-inner);
-    border: 1px solid var(--border-glass);
-    border-radius: var(--radius-md);
-    color: var(--text-main);
-    font-family: var(--font-heading);
-    font-size: 1.15rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.dark .alt-candidate-btn {
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    color: #ffffff;
-}
-
-.alt-candidate-btn:hover {
-    background: var(--primary);
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
-}
-
-/* ==========================================================================
-   Toast Notifications
-   ========================================================================== */
-
-.toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: rgba(15, 23, 42, 0.95);
-    border: 1px solid var(--primary);
-    color: #ffffff;
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 12px 20px;
-    border-radius: var(--radius-md);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.3);
-    opacity: 0;
-    transform: translateY(20px);
-    pointer-events: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1000;
-}
-
-.toast.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* ==========================================================================
-   Responsive Breakpoints
-   ========================================================================== */
-
-@media (max-width: 768px) {
-    .top-nav {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 14px;
+{% extends "base.html" %}
+
+{% block extra_styles %}
+<style>
+    .tab-btn.active {
+        background-color: #ffffff; color: #0f172a; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); border-color: #e2e8f0;
     }
-
-    .brand-group {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 8px;
+    html.dark .tab-btn.active {
+        background-color: #1e293b; color: #ffffff; border-color: #334155;
     }
-
-    .studio-card {
-        grid-template-columns: 1fr;
-        max-width: 380px;
-        margin: 0 auto;
-        padding: 18px;
+    .tool-btn.active {
+        background-color: #2563eb; color: #ffffff; border-color: #2563eb;
     }
-
-    .canvas-wrapper,
-    .canvas-toolbar,
-    .image-upload-wrapper,
-    .image-preview-wrapper {
-        width: 100%;
-        max-width: 320px;
+    @keyframes gentleFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-6px); }
     }
-}
-
+    .empty-icon-glow { animation: gentleFloat 3s ease-in-out infinite; }
+    @keyframes shake-error {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-6px); }
+        50% { transform: translateX(6px); }
+        75% { transform: translateX(-6px); }
+    }
+    .btn-error {
+        animation: shake-error 0.3s ease-in-out; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4) !important;
+    }
+    .text-gradient {
+        background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-image: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    }
 </style>
-    <script>
-        if (!localStorage.getItem('forced_light_v1')) {
-            localStorage.setItem('theme', 'light');
-            localStorage.setItem('word_matrix_theme', 'light');
-            localStorage.setItem('ocr_theme', 'light');
-            localStorage.setItem('forced_light_v1', 'true');
-        }
-    </script>
-</head>
-<body>
-    <script>
-        (function() {
-            var mainTheme = localStorage.getItem('theme') || 'light';
-            if (mainTheme === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-            var lang = localStorage.getItem('app_lang');
-            if (lang) {
-                document.documentElement.lang = lang;
-            }
-        })();
-    </script>
-    <div class="app-container">
-        <!-- Top Navigation Bar -->
-        <header class="top-nav">
-            <div class="brand-group">
-                <div class="brand-badge">✨ AI</div>
-                <div class="brand-text">
-                    <h1 id="app-title" class="brand-title">Teckenigenkänning</h1>
-                    <p id="app-subtitle" class="brand-subtitle">Rita eller klistra in en bild för att tolka tecknet med AI</p>
-                </div>
-            </div>
-            
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <a href="/" class="lang-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;" title="Tillbaka till portfölj">
-                    <span>←</span> <span>Portfölj</span>
-                </a>
-                <div class="lang-toggle" id="ocr-theme-toggle" style="margin-right: -0.25rem;">
-                    <button type="button" class="lang-btn" id="ocr-theme-btn" title="Byt tema / Toggle theme">🌙</button>
-                </div>
-                <div class="lang-toggle" id="ocr-fullscreen-toggle" style="margin-right: -0.25rem;">
-                    <button type="button" class="lang-btn" id="ocr-fullscreen-btn" title="Helskärm / Full Screen" style="display: flex; align-items: center; justify-content: center; padding: 6px 10px;">
-                        <svg id="ocrFsEnter" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                        </svg>
-                        <svg id="ocrFsExit" class="hidden" style="display:none;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4l5 5m0 0H5m4 0V5m11-1l-5 5m0 0h4m-4 0V5M4 20l5-5m0 0H5m4 0v4m11 1l-5-5m0 0h4m-4 0v4" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="lang-toggle" id="lang-toggle">
-                    <button type="button" class="lang-btn active" data-lang="SWE">🇸🇪 SWE</button>
-                    <button type="button" class="lang-btn" data-lang="ENG">🇬🇧 ENG</button>
-                </div>
-            </div>
-        </header>
+{% endblock %}
 
-        <!-- Main Workspace (Studio Card with 2 Panels) -->
-        <main class="studio-card">
-            
-            <!-- Left Panel: Input Workspace -->
-            <section class="panel-input">
-                <div class="panel-header">
-                    <div class="mode-tabs">
-                        <button type="button" class="tab-btn active" id="tab-draw" data-mode="draw">
-                            <span class="tab-icon">✏️</span>
-                            <span id="tab-draw-text">Rita</span>
-                        </button>
-                        <button type="button" class="tab-btn" id="tab-image" data-mode="image">
-                            <span class="tab-icon">🖼️</span>
-                            <span id="tab-image-text">Bild</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Draw Mode Container -->
-                <div id="draw-container" class="mode-container active">
-                    <div class="canvas-wrapper">
-                        <canvas id="paint-canvas" width="320" height="320"></canvas>
-                    </div>
-                    <div class="canvas-toolbar">
-                        <div class="tool-group">
-                            <button type="button" id="tool-brush" class="tool-btn active" title="Pensel / Brush">
-                                🖌️ <span id="tool-brush-text">Pensel</span>
-                            </button>
-                            <button type="button" id="tool-eraser" class="tool-btn" title="Suddgummi / Eraser">
-                                🧹 <span id="tool-eraser-text">Sudd</span>
-                            </button>
-                            <button type="button" id="btn-undo" class="tool-btn" title="Ångra / Undo">
-                                ↩️ <span id="btn-undo-text">Ångra</span>
-                            </button>
-                        </div>
-                        <button type="button" id="btn-clear-canvas" class="tool-btn clear-btn" title="Rensa / Clear">
-                            🗑️ <span id="btn-clear-text">Rensa</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Image Mode Container -->
-                <div id="image-container" class="mode-container">
-                    <div id="image-upload-wrapper" class="image-upload-wrapper">
-                        <div id="drop-zone" class="drop-zone">
-                            <input type="file" id="file-input" accept="image/*" class="file-input-hidden">
-                            <div class="drop-prompt">
-                                <span class="upload-icon">📁</span>
-                                <p id="upload-prompt-text"><strong>Klicka eller dra bild hit</strong></p>
-                                <p class="upload-hint" id="upload-hint-text">eller klistra in med Ctrl+V</p>
-                            </div>
-                        </div>
-
-                        <button type="button" id="btn-paste-clipboard" class="tool-btn paste-btn">
-                            📋 <span id="btn-paste-text">Klistra in från urklipp</span>
-                        </button>
-                    </div>
-                    
-                    <div id="image-preview-wrapper" class="image-preview-wrapper" style="display: none;">
-                        <div class="image-preview-stage">
-                            <img id="source-image" src="" alt="Uppladdad bild" draggable="false">
-                        </div>
-                        <div class="image-preview-toolbar">
-                            <button type="button" id="btn-new-image" class="tool-btn secondary-btn">
-                                🔄 <span id="btn-new-image-text">Byt bild</span>
-                            </button>
-                            <button type="button" id="btn-paste-again" class="tool-btn paste-btn">
-                                📋 <span id="btn-paste-again-text">Klistra in ny bild</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Right Panel: Recognition & Results -->
-            <section class="panel-result">
-                <div class="panel-header">
-                    <h2 class="result-heading" id="result-heading">⚡ AI-tolkning</h2>
-                </div>
-
-                <!-- Result Card Area (Ready / Hero Result) -->
-                <div class="result-display-area">
-                    <!-- Empty / Waiting State -->
-                    <div id="result-empty-state" class="result-empty-state">
-                        <div class="empty-icon-glow">🔮</div>
-                        <h3 id="empty-title" class="empty-title">Redo för tolkning</h3>
-                        <p id="empty-desc" class="empty-desc">Rita ett tecken till vänster och tryck på <strong>Tolka tecken</strong>.</p>
-                    </div>
-
-                    <!-- Active Result State -->
-                    <div id="result-active-state" class="result-active-state" style="display: none;">
-                        <div class="hero-result-card" id="hero-result-card" title="Klicka för att kopiera">
-                            <span class="hero-badge-tag" id="hero-badge-tag">Bästa träff</span>
-                            <div class="hero-char" id="hero-char">A</div>
-                            <span class="copy-hint" id="copy-hint-text">📋 Klicka för att kopiera</span>
-                        </div>
-
-                        <div id="alt-candidates-wrapper" class="alt-candidates-wrapper" style="display: none;">
-                            <p class="alt-candidates-title" id="alt-candidates-title">Andra förslag:</p>
-                            <div class="alt-candidate-buttons" id="alt-candidate-buttons">
-                                <!-- Populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Primary Action Button placed under Ready to Recognize / Result -->
-                <button type="button" id="btn-recognize" class="primary-btn">
-                    <span class="btn-icon">🔍</span>
-                    <span id="btn-recognize-text">Tolka tecken</span>
-                </button>
-            </section>
-        </main>
-
-        <!-- Notification Toast -->
-        <div id="toast" class="toast"></div>
+{% block content %}
+<header class="text-center mb-10 mt-4 relative flex flex-col items-center">
+    <div class="inline-flex items-center justify-center px-4 py-1.5 mb-4 rounded-full bg-brand-100 dark:bg-slate-800 border border-brand-200 dark:border-slate-700 shadow-sm">
+        <span class="text-xs font-bold tracking-widest text-brand-600 dark:text-cyan-400 uppercase">✨ AI Studio</span>
     </div>
+    <h1 id="app-title" class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-white">Teckenigenkänning</h1>
+    <p id="app-subtitle" class="text-lg text-slate-600 dark:text-slate-400 font-medium">Rita eller klistra in en bild för att tolka tecknet med AI</p>
+</header>
 
-    <script>
-/**
- * Teckenigenkänning / Modern AI OCR - Client Application Logic
- */
+<div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6 sm:p-10 shadow-glass dark:shadow-glass-dark border border-white/40 dark:border-slate-700/50 transition-colors duration-500 grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
+    <section class="flex flex-col gap-5 h-full">
+        <div class="flex gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/50">
+            <button type="button" class="tab-btn active flex-1 flex justify-center gap-2 items-center py-2.5 rounded-lg text-sm font-semibold text-slate-500 dark:text-slate-400 border border-transparent cursor-pointer" id="tab-draw" data-mode="draw">✏️ <span id="tab-draw-text">Rita</span></button>
+            <button type="button" class="tab-btn flex-1 flex justify-center gap-2 items-center py-2.5 rounded-lg text-sm font-semibold text-slate-500 dark:text-slate-400 border border-transparent cursor-pointer" id="tab-image" data-mode="image">🖼️ <span id="tab-image-text">Bild</span></button>
+        </div>
 
-document.addEventListener('DOMContentLoaded', () => {
-    // ==========================================
-    // State & Translations
-    // ==========================================
-    let currentLang = 'SWE';
-    let currentMode = 'draw'; // 'draw' | 'image'
+        <div id="draw-container" class="flex flex-col items-center gap-4 w-full h-full">
+            <div class="w-[320px] h-[320px] rounded-2xl overflow-hidden bg-black border border-slate-200 dark:border-slate-700 shadow-inner flex justify-center items-center cursor-crosshair shrink-0">
+                <canvas id="paint-canvas" width="320" height="320" class="block touch-none"></canvas>
+            </div>
+            <div class="flex justify-between gap-2 w-full max-w-[320px] p-1.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                <button type="button" id="tool-brush" class="tool-btn active flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 border border-transparent transition-colors hover:bg-slate-200 dark:hover:bg-slate-800">🖌️ <span id="tool-brush-text">Pensel</span></button>
+                <button type="button" id="tool-eraser" class="tool-btn flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 border border-transparent transition-colors hover:bg-slate-200 dark:hover:bg-slate-800">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2.5 16l4.5 4.5 13-13c1.7-1.7 1.7-4.4 0-6s-4.4-1.7-6 0L2.5 16z"></path><path d="M12.5 6l5.5 5.5"></path><path d="M7 21h15"></path>
+                    </svg>
+                    <span id="tool-eraser-text">Sudd</span>
+                </button>
+                <button type="button" id="btn-undo" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 border border-transparent transition-colors hover:bg-slate-200 dark:hover:bg-slate-800">↩️ <span id="btn-undo-text">Ångra</span></button>
+                <button type="button" id="btn-clear-canvas" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg text-xs font-bold text-rose-500 dark:text-rose-400 border border-transparent transition-colors hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:border-rose-200 dark:hover:border-rose-800">🗑️ <span id="btn-clear-text">Rensa</span></button>
+            </div>
+        </div>
+
+        <div id="image-container" class="hidden flex-col items-center gap-4 w-full h-full">
+            <div id="image-upload-wrapper" class="flex flex-col items-center gap-3 w-full max-w-[320px]">
+                <div id="drop-zone" class="w-full min-h-[260px] border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-slate-800/50 rounded-2xl bg-slate-50 dark:bg-slate-900/50 flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all">
+                    <input type="file" id="file-input" accept="image/*" class="hidden">
+                    <span class="text-4xl mb-3 block">📁</span>
+                    <p id="upload-prompt-text" class="text-sm font-bold text-slate-700 dark:text-slate-300">Klicka eller dra bild hit</p>
+                    <p id="upload-hint-text" class="text-xs text-slate-500 dark:text-slate-400 mt-2 font-medium">eller klistra in med Ctrl+V</p>
+                </div>
+                <button type="button" id="btn-paste-clipboard" class="w-full py-2.5 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800/50 text-brand-600 dark:text-brand-400 text-sm font-bold rounded-xl transition hover:bg-brand-600 hover:text-white dark:hover:bg-brand-600 dark:hover:text-white hover:border-brand-600">📋 <span id="btn-paste-text">Klistra in från urklipp</span></button>
+            </div>
+
+            <div id="image-preview-wrapper" class="hidden flex-col items-center gap-3 w-full max-w-[320px]">
+                <div class="w-[320px] h-[320px] rounded-2xl overflow-hidden bg-black border border-slate-200 dark:border-slate-700 shadow-inner flex justify-center items-center shrink-0">
+                    <img id="source-image" src="" draggable="false" class="max-w-full max-h-[300px] object-contain">
+                </div>
+                <div class="w-full p-1.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                    <button type="button" id="btn-new-image" class="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">🔄 <span id="btn-new-image-text">Byt bild</span></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="flex flex-col gap-4 h-full">
+        <h2 id="result-heading" class="text-xl font-bold tracking-tight text-slate-900 dark:text-white mb-1">⚡ AI-tolkning</h2>
+
+        <div class="flex-grow flex flex-col justify-center">
+            <div id="result-empty-state" class="flex-grow min-h-[260px] bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-300 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center p-6 text-center gap-3">
+                <div class="text-5xl empty-icon-glow block">🔮</div>
+                <h3 id="empty-title" class="text-lg font-bold text-slate-800 dark:text-slate-200">Redo för tolkning</h3>
+                <p id="empty-desc" class="text-sm font-medium text-slate-500 dark:text-slate-400">Rita ett tecken till vänster och tryck på <strong>Tolka tecken</strong>.</p>
+            </div>
+
+            <div id="result-active-state" class="hidden flex-col gap-4">
+                <div id="hero-result-card" class="bg-gradient-to-b from-brand-50 to-white dark:from-slate-800 dark:to-slate-900 border-2 border-brand-400 dark:border-brand-500 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all" title="Klicka för att kopiera">
+                    <span id="hero-badge-tag" class="bg-brand-100 dark:bg-brand-900/40 border border-brand-200 dark:border-brand-700 text-brand-700 dark:text-brand-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2">Bästa träff</span>
+                    <div id="hero-char" class="text-7xl font-extrabold text-gradient my-2">A</div>
+                    <span id="copy-hint-text" class="text-xs text-slate-500 dark:text-slate-400 font-bold mt-2">📋 Klicka för att kopiera</span>
+                </div>
+
+                <div id="alt-candidates-wrapper" class="hidden flex-col gap-2">
+                    <p id="alt-candidates-title" class="text-sm font-bold text-slate-600 dark:text-slate-400">Andra förslag:</p>
+                    <div id="alt-candidate-buttons" class="flex gap-2 flex-wrap"></div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" id="btn-recognize" class="w-full min-h-[56px] mt-auto flex items-center justify-center gap-2 border border-transparent rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-lg font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all">
+            <span class="btn-icon">🔍</span> <span id="btn-recognize-text">Tolka tecken</span>
+        </button>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentMode = 'draw';
     let isDrawing = false;
     let isEraser = false;
     const brushSize = 16;
-    const selectedModel = 'Alla modeller';
     let attachedImageBase64 = null;
     let currentTopPrediction = '';
 
-    const TRANSLATIONS = {
-        SWE: {
-            app_title: "Teckenigenkänning",
-            app_subtitle: "Rita eller klistra in en bild för att tolka tecknet med AI",
-            tab_draw: "Rita",
-            tab_image: "Bild",
-            tool_brush: "Pensel",
-            tool_eraser: "Sudd",
-            btn_undo: "Ångra",
-            btn_clear: "Rensa",
-            upload_prompt: "Klicka eller dra bild hit",
-            upload_hint: "eller klistra in med Ctrl+V",
-            btn_paste: "Klistra in från urklipp",
-            btn_paste_again: "Klistra in ny bild",
-            btn_new_image: "Byt bild",
-            result_heading: "⚡ AI-tolkning",
-            btn_recognize: "Tolka tecken",
-            empty_title: "Redo för tolkning",
-            empty_desc: "Rita ett tecken till vänster och tryck på <strong>Tolka tecken</strong>.",
-            hero_tag: "Bästa träff",
-            copy_hint: "📋 Klicka för att kopiera",
-            alt_title: "Andra förslag:",
-            toast_empty_draw: "Rita ett tecken först 🙂",
-            toast_empty_image: "Ladda upp eller klistra in en bild först 🙂",
-            toast_no_char: "Hittade inget tecken 🙂",
-            toast_pasted: "Bild inklistrad från urklipp!",
-            toast_clipboard_denied: "Kunde inte läsa urklipp automatiskt. Använd Ctrl+V!",
-            toast_no_clipboard_img: "Inget bildobjekt hittades i urklipp.",
-            toast_predicted: "Tecken tolkat!",
-            toast_copied: "Kopierat till urklipp!",
-            toast_error: "Ett fel uppstod:"
-        },
-        ENG: {
-            app_title: "Character Recognition",
-            app_subtitle: "Draw or paste an image to recognize the character with AI",
-            tab_draw: "Draw",
-            tab_image: "Image",
-            tool_brush: "Brush",
-            tool_eraser: "Eraser",
-            btn_undo: "Undo",
-            btn_clear: "Clear",
-            upload_prompt: "Click or drag image here",
-            upload_hint: "or paste with Ctrl+V",
-            btn_paste: "Paste from Clipboard",
-            btn_paste_again: "Paste new image",
-            btn_new_image: "Change image",
-            result_heading: "⚡ AI Recognition",
-            btn_recognize: "Recognize Character",
-            empty_title: "Ready to recognize",
-            empty_desc: "Draw a character on the left and click <strong>Recognize Character</strong>.",
-            hero_tag: "Best Match",
-            copy_hint: "📋 Click to copy",
-            alt_title: "Other candidates:",
-            toast_empty_draw: "Draw a character first 🙂",
-            toast_empty_image: "Upload or paste an image first 🙂",
-            toast_no_char: "No character detected 🙂",
-            toast_pasted: "Image pasted from clipboard!",
-            toast_clipboard_denied: "Could not read clipboard automatically. Press Ctrl+V!",
-            toast_no_clipboard_img: "No image found in clipboard.",
-            toast_predicted: "Character recognized!",
-            toast_copied: "Copied to clipboard!",
-            toast_error: "An error occurred:"
-        }
-    };
-
-    // ==========================================
-    // DOM Elements
-    // ==========================================
-    const langBtns = document.querySelectorAll('.lang-btn');
-    const tabDraw = document.getElementById('tab-draw');
-    const tabImage = document.getElementById('tab-image');
-    const drawContainer = document.getElementById('draw-container');
-    const imageContainer = document.getElementById('image-container');
-
     const canvas = document.getElementById('paint-canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    const toolBrush = document.getElementById('tool-brush');
-    const toolEraser = document.getElementById('tool-eraser');
-    const btnUndo = document.getElementById('btn-undo');
-    const btnClearCanvas = document.getElementById('btn-clear-canvas');
+    let drawHistory = [];
+    let historyStep = -1;
 
-    const imageUploadWrapper = document.getElementById('image-upload-wrapper');
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('file-input');
-    const btnPasteClipboard = document.getElementById('btn-paste-clipboard');
-    const imagePreviewWrapper = document.getElementById('image-preview-wrapper');
-    const sourceImage = document.getElementById('source-image');
-    const btnNewImage = document.getElementById('btn-new-image');
-    const btnPasteAgain = document.getElementById('btn-paste-again');
-
-    const btnRecognize = document.getElementById('btn-recognize');
-    const resultEmptyState = document.getElementById('result-empty-state');
-    const resultActiveState = document.getElementById('result-active-state');
-    const heroResultCard = document.getElementById('hero-result-card');
-    const heroBadgeTag = document.getElementById('hero-badge-tag');
-    const heroChar = document.getElementById('hero-char');
-    const copyHintText = document.getElementById('copy-hint-text');
-    const altCandidatesWrapper = document.getElementById('alt-candidates-wrapper');
-    const altCandidatesTitle = document.getElementById('alt-candidates-title');
-    const altCandidateButtons = document.getElementById('alt-candidate-buttons');
-    const toast = document.getElementById('toast');
-
-    // ==========================================
-    // Toast Notification
-    // ==========================================
-    let toastTimer = null;
-    function showToast(message) {
-        toast.textContent = message;
-        toast.classList.add('show');
-        if (toastTimer) clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
-            toast.classList.remove('show');
-        }, 2800);
+    // Called automatically by base.html on load
+    function pageInit() {
+        initCanvas();
+        drawHistory.push(canvas.toDataURL());
+        historyStep = 0;
     }
 
-    // ==========================================
-    // Language Switcher
-    // ==========================================
-    function setLanguage(lang) {
-        const normalized = (lang === 'en' || lang === 'ENG') ? 'ENG' : 'SWE';
-        currentLang = normalized;
-        const t = TRANSLATIONS[normalized];
+    const TRANSLATIONS = {
+        SWE: { app_title: "Teckenigenkänning", app_subtitle: "Rita eller klistra in en bild för att tolka tecknet med AI", tab_draw: "Rita", tab_image: "Bild", tool_brush: "Pensel", tool_eraser: "Sudd", btn_undo: "Ångra", btn_clear: "Rensa", upload_prompt: "Klicka eller dra bild hit", upload_hint: "eller klistra in med Ctrl+V", btn_paste: "Klistra in från urklipp", btn_new_image: "Byt bild", result_heading: "⚡ AI-tolkning", btn_recognize: "Tolka tecken", empty_title: "Redo för tolkning", empty_desc: "Rita ett tecken till vänster och tryck på <strong>Tolka tecken</strong>.", hero_tag: "Bästa träff", copy_hint: "📋 Klicka för att kopiera", alt_title: "Andra förslag:", btn_err_empty: "Mata in tecken först!" },
+        ENG: { app_title: "Character Recognition", app_subtitle: "Draw or paste an image to recognize the character with AI", tab_draw: "Draw", tab_image: "Image", tool_brush: "Brush", tool_eraser: "Eraser", btn_undo: "Undo", btn_clear: "Clear", upload_prompt: "Click or drag image here", upload_hint: "or paste with Ctrl+V", btn_paste: "Paste from Clipboard", btn_new_image: "Change image", result_heading: "⚡ AI Recognition", btn_recognize: "Recognize Character", empty_title: "Ready to recognize", empty_desc: "Draw a character on the left and click <strong>Recognize Character</strong>.", hero_tag: "Best Match", copy_hint: "📋 Click to copy", alt_title: "Other candidates:", btn_err_empty: "Provide input first!" }
+    };
 
-        const langToggleBtns = document.querySelectorAll('#lang-toggle .lang-btn');
-        langToggleBtns.forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.lang === normalized);
-        });
+    // Called automatically by base.html on language change
+    function updateLocalUI() {
+        const langKey = AppState.lang === 'sv' ? 'SWE' : 'ENG';
+        const t = TRANSLATIONS[langKey];
 
         document.getElementById('app-title').textContent = t.app_title;
         document.getElementById('app-subtitle').textContent = t.app_subtitle;
         document.getElementById('tab-draw-text').textContent = t.tab_draw;
         document.getElementById('tab-image-text').textContent = t.tab_image;
         document.getElementById('tool-brush-text').textContent = t.tool_brush;
-        document.getElementById('tool-eraser-text').textContent = t.tool_eraser;
         document.getElementById('btn-undo-text').textContent = t.btn_undo;
         document.getElementById('btn-clear-text').textContent = t.btn_clear;
         document.getElementById('upload-prompt-text').innerHTML = `<strong>${t.upload_prompt}</strong>`;
         document.getElementById('upload-hint-text').textContent = t.upload_hint;
         document.getElementById('btn-paste-text').textContent = t.btn_paste;
         document.getElementById('btn-new-image-text').textContent = t.btn_new_image;
-        document.getElementById('btn-paste-again-text').textContent = t.btn_paste_again;
-        document.getElementById('result-heading').textContent = t.result_heading;
         document.getElementById('btn-recognize-text').textContent = t.btn_recognize;
         document.getElementById('empty-title').textContent = t.empty_title;
         document.getElementById('empty-desc').innerHTML = t.empty_desc;
-        heroBadgeTag.textContent = t.hero_tag;
-        copyHintText.textContent = t.copy_hint;
-        altCandidatesTitle.textContent = t.alt_title;
+        document.getElementById('result-heading').textContent = t.result_heading;
+        document.getElementById('hero-badge-tag').textContent = t.hero_tag;
+        document.getElementById('copy-hint-text').textContent = t.copy_hint;
+        document.getElementById('alt-candidates-title').textContent = t.alt_title;
     }
 
-    const langToggleBtns = document.querySelectorAll('#lang-toggle .lang-btn');
-    langToggleBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (btn.dataset.lang) {
-                setLanguage(btn.dataset.lang);
-                localStorage.setItem('app_lang', btn.dataset.lang === 'ENG' ? 'en' : 'sv');
-            }
-        });
-    });
-
-    // ==========================================
-    // Theme Switcher
-    // ==========================================
-    const themeBtn = document.getElementById('ocr-theme-btn');
-    
-    function updateOcrThemeBtn() {
-        if (!themeBtn) return;
-        const isDark = document.documentElement.classList.contains('dark');
-        themeBtn.style.opacity = '1';
-        themeBtn.style.cursor = 'pointer';
-        themeBtn.title = currentLang === 'SWE' ? 'Byt tema' : 'Toggle theme';
-        themeBtn.textContent = isDark ? '☀️' : '🌙';
+    function triggerButtonError(msg) {
+        const btn = document.getElementById('btn-recognize');
+        const originalHTML = btn.innerHTML;
+        btn.classList.add('btn-error');
+        btn.innerHTML = `<span class="text-white font-bold">⚠️ ${msg}</span>`;
+        setTimeout(() => { btn.classList.remove('btn-error'); btn.innerHTML = originalHTML; }, 2000);
     }
 
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-            const isDark = document.documentElement.classList.contains('dark');
-            if (isDark) {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            } else {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            }
-            updateOcrThemeBtn();
-            window.dispatchEvent(new Event('storage'));
-        });
-        updateOcrThemeBtn();
-    }
-
-    // ==========================================
-    // Mode Switching (Draw vs Image)
-    // ==========================================
-    tabDraw.addEventListener('click', () => {
+    document.getElementById('tab-draw').addEventListener('click', () => {
         currentMode = 'draw';
-        tabDraw.classList.add('active');
-        tabImage.classList.remove('active');
-        drawContainer.classList.add('active');
-        imageContainer.classList.remove('active');
+        document.getElementById('tab-draw').classList.add('active'); document.getElementById('tab-image').classList.remove('active');
+        document.getElementById('draw-container').classList.remove('hidden'); document.getElementById('draw-container').classList.add('flex');
+        document.getElementById('image-container').classList.add('hidden'); document.getElementById('image-container').classList.remove('flex');
     });
 
-    tabImage.addEventListener('click', () => {
+    document.getElementById('tab-image').addEventListener('click', () => {
         currentMode = 'image';
-        tabImage.classList.add('active');
-        tabDraw.classList.remove('active');
-        imageContainer.classList.add('active');
-        drawContainer.classList.remove('active');
+        document.getElementById('tab-image').classList.add('active'); document.getElementById('tab-draw').classList.remove('active');
+        document.getElementById('image-container').classList.remove('hidden'); document.getElementById('image-container').classList.add('flex');
+        document.getElementById('draw-container').classList.add('hidden'); document.getElementById('draw-container').classList.remove('flex');
     });
 
-    // ==========================================
-    // Canvas Drawing Engine & Undo Functionality
-    // ==========================================
-    let drawHistory = [];
-    let historyStep = -1;
-
-    function initCanvas() {
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-    }
-
-    function saveCanvasState() {
-        historyStep++;
-        if (historyStep < drawHistory.length) {
-            drawHistory.length = historyStep;
-        }
-        drawHistory.push(canvas.toDataURL('image/png'));
-    }
+    function initCanvas() { ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; }
+    function saveCanvasState() { historyStep++; drawHistory.length = historyStep; drawHistory.push(canvas.toDataURL()); }
 
     function undoCanvas() {
         if (historyStep > 0) {
             historyStep--;
-            const img = new Image();
-            img.src = drawHistory[historyStep];
-            img.onload = () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0);
-            };
-        } else if (historyStep === 0) {
-            historyStep = -1;
-            drawHistory = [];
-            initCanvas();
-        }
+            const img = new Image(); img.src = drawHistory[historyStep];
+            img.onload = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0); };
+        } else { initCanvas(); resetResultState(); }
     }
 
-    function getCanvasCoordinates(e) {
+    function getPos(e) {
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-
-        let clientX = e.clientX;
-        let clientY = e.clientY;
-
-        if (e.touches && e.touches.length > 0) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-        }
-
-        return {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY
-        };
-    }
-
-    function startDrawing(e) {
-        e.preventDefault();
-        if (!isDrawing) saveCanvasState();
-        isDrawing = true;
-        const pos = getCanvasCoordinates(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-        draw(e);
+        let cX = e.touches ? e.touches[0].clientX : e.clientX;
+        let cY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: (cX - rect.left) * (canvas.width / rect.width), y: (cY - rect.top) * (canvas.height / rect.height) };
     }
 
     function draw(e) {
-        if (!isDrawing) return;
-        e.preventDefault();
-        const pos = getCanvasCoordinates(e);
-
-        ctx.lineWidth = brushSize;
-        if (isEraser) {
-            ctx.strokeStyle = '#000000';
-            ctx.fillStyle = '#000000';
-        } else {
-            ctx.strokeStyle = '#ffffff';
-            ctx.fillStyle = '#ffffff';
-        }
-
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, brushSize / 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
+        if (!isDrawing) return; e.preventDefault(); const p = getPos(e);
+        ctx.lineWidth = brushSize; ctx.strokeStyle = isEraser ? '#000000' : '#ffffff'; ctx.fillStyle = ctx.strokeStyle;
+        ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.beginPath(); ctx.arc(p.x, p.y, brushSize / 2, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.moveTo(p.x, p.y);
     }
 
-    function stopDrawing(e) {
-        if (!isDrawing) return;
-        isDrawing = false;
-        ctx.beginPath();
-    }
-
-    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousedown', e => { e.preventDefault(); isDrawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); draw(e); });
     canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseleave', stopDrawing);
-
-    canvas.addEventListener('touchstart', startDrawing, { passive: false });
+    window.addEventListener('mouseup', () => { if (isDrawing) { isDrawing = false; ctx.beginPath(); saveCanvasState(); } });
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); isDrawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); draw(e); }, { passive: false });
     canvas.addEventListener('touchmove', draw, { passive: false });
-    canvas.addEventListener('touchend', stopDrawing);
+    window.addEventListener('touchend', () => { if (isDrawing) { isDrawing = false; ctx.beginPath(); saveCanvasState(); } });
 
-    toolBrush.addEventListener('click', () => {
-        isEraser = false;
-        toolBrush.classList.add('active');
-        toolEraser.classList.remove('active');
-    });
+    document.getElementById('tool-brush').addEventListener('click', () => { isEraser = false; document.getElementById('tool-brush').classList.add('active'); document.getElementById('tool-eraser').classList.remove('active'); });
+    document.getElementById('tool-eraser').addEventListener('click', () => { isEraser = true; document.getElementById('tool-eraser').classList.add('active'); document.getElementById('tool-brush').classList.remove('active'); });
+    document.getElementById('btn-undo').addEventListener('click', undoCanvas);
+    document.getElementById('btn-clear-canvas').addEventListener('click', () => { initCanvas(); saveCanvasState(); resetResultState(); });
 
-    toolEraser.addEventListener('click', () => {
-        isEraser = true;
-        toolEraser.classList.add('active');
-        toolBrush.classList.remove('active');
-    });
-
-    btnUndo.addEventListener('click', undoCanvas);
-
-    btnClearCanvas.addEventListener('click', () => {
-        saveCanvasState();
-        initCanvas();
-        resetResultState();
-    });
-
-    initCanvas();
-
-    // ==========================================
-    // Image Upload & Clipboard Paste Engine
-    // ==========================================
-    dropZone.addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-            handleImageFile(e.target.files[0]);
-        }
-    });
-
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('dragover');
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleImageFile(e.dataTransfer.files[0]);
-        }
-    });
-
-    // Global Paste Listener (Ctrl+V)
-    window.addEventListener('paste', (e) => {
-        const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
-        if (!items) return;
-        for (let item of items) {
-            if (item.type.indexOf('image') !== -1) {
-                const blob = item.getAsFile();
-                handleImageFile(blob);
-                tabImage.click();
-                showToast(TRANSLATIONS[currentLang].toast_pasted);
-                break;
-            }
-        }
-    });
-
-    // Paste Button using Clipboard API
-    async function pasteFromClipboard() {
-        const t = TRANSLATIONS[currentLang];
-        try {
-            if (!navigator.clipboard || !navigator.clipboard.read) {
-                showToast(t.toast_clipboard_denied);
-                return;
-            }
-
-            const clipboardItems = await navigator.clipboard.read();
-            let imageFound = false;
-
-            for (const item of clipboardItems) {
-                const imageType = item.types.find(type => type.startsWith('image/'));
-                if (imageType) {
-                    const blob = await item.getType(imageType);
-                    handleImageFile(blob);
-                    showToast(t.toast_pasted);
-                    imageFound = true;
-                    break;
-                }
-            }
-
-            if (!imageFound) {
-                showToast(t.toast_no_clipboard_img);
-            }
-        } catch (err) {
-            console.warn("Clipboard access error:", err);
-            showToast(t.toast_clipboard_denied);
-        }
-    }
-
-    btnPasteClipboard.addEventListener('click', pasteFromClipboard);
-    btnPasteAgain.addEventListener('click', pasteFromClipboard);
-
-    function handleImageFile(file) {
+    function handleFile(file) {
         const reader = new FileReader();
-        reader.onload = (e) => {
-            attachedImageBase64 = e.target.result;
-            sourceImage.src = attachedImageBase64;
-            sourceImage.onload = () => {
-                imageUploadWrapper.style.display = 'none';
-                imagePreviewWrapper.style.display = 'flex';
-            };
+        reader.onload = e => {
+            attachedImageBase64 = e.target.result; document.getElementById('source-image').src = attachedImageBase64;
+            document.getElementById('image-upload-wrapper').classList.add('hidden'); document.getElementById('image-upload-wrapper').classList.remove('flex');
+            document.getElementById('image-preview-wrapper').classList.remove('hidden'); document.getElementById('image-preview-wrapper').classList.add('flex');
         };
         reader.readAsDataURL(file);
     }
 
-    btnNewImage.addEventListener('click', () => {
-        imageUploadWrapper.style.display = 'flex';
-        imagePreviewWrapper.style.display = 'none';
-        sourceImage.src = '';
-        attachedImageBase64 = null;
-        fileInput.value = '';
-        resetResultState();
+    document.getElementById('drop-zone').addEventListener('click', () => document.getElementById('file-input').click());
+    document.getElementById('file-input').addEventListener('change', e => e.target.files[0] && handleFile(e.target.files[0]));
+
+    window.addEventListener('paste', e => {
+        if (currentMode !== 'image') return;
+        const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+        if (!items) return;
+        for (let item of items) { if (item.type.indexOf('image') !== -1) { handleFile(item.getAsFile()); break; } }
     });
 
-    // ==========================================
-    // Recognition & API Integration
-    // ==========================================
-    btnRecognize.addEventListener('click', () => {
-        const t = TRANSLATIONS[currentLang];
-        let imageToSend = null;
-
-        if (currentMode === 'draw') {
-            imageToSend = canvas.toDataURL('image/png');
-        } else {
-            if (!attachedImageBase64) {
-                showToast(t.toast_empty_image);
-                return;
-            }
-            imageToSend = attachedImageBase64;
-        }
-
-        sendPrediction(imageToSend);
-    });
-
-    async function sendPrediction(base64Image) {
-        const t = TRANSLATIONS[currentLang];
-        btnRecognize.classList.add('loading');
-        btnRecognize.innerHTML = `<span class="btn-icon">⏳</span> <span>${currentLang === 'SWE' ? 'Tolkar...' : 'Recognizing...'}</span>`;
-
+    document.getElementById('btn-paste-clipboard').addEventListener('click', async () => {
         try {
-            const apiEndpoint = window.location.pathname.includes('/ocr') ? '/ocr/api/predict' : '/api/predict';
-            const res = await fetch(apiEndpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    image: base64Image,
-                    model: selectedModel,
-                    lang: currentLang
-                })
-            });
-
-            const data = await res.json();
-
-            if (data.status === 'ok' && data.candidates && data.candidates.length > 0) {
-                displayResults(data.candidates);
-                showToast(t.toast_predicted);
-            } else {
-                showToast(data.message || t.toast_no_char);
-                resetResultState();
+            const items = await navigator.clipboard.read();
+            for (const item of items) {
+                const imgType = item.types.find(t => t.startsWith('image/'));
+                if (imgType) { handleFile(await item.getType(imgType)); break; }
             }
-        } catch (err) {
-            console.error("Prediction error:", err);
-            showToast(`${t.toast_error} ${err.message}`);
-            resetResultState();
-        } finally {
-            btnRecognize.classList.remove('loading');
-            btnRecognize.innerHTML = `<span class="btn-icon">🔍</span> <span id="btn-recognize-text">${t.btn_recognize}</span>`;
-        }
+        } catch (err) { }
+    });
+
+    document.getElementById('btn-new-image').addEventListener('click', () => {
+        document.getElementById('image-upload-wrapper').classList.remove('hidden'); document.getElementById('image-upload-wrapper').classList.add('flex');
+        document.getElementById('image-preview-wrapper').classList.add('hidden'); document.getElementById('image-preview-wrapper').classList.remove('flex');
+        attachedImageBase64 = null; resetResultState();
+    });
+
+    function isCanvasBlank() {
+        const blank = document.createElement('canvas'); blank.width = canvas.width; blank.height = canvas.height;
+        const bCtx = blank.getContext('2d'); bCtx.fillStyle = '#000000'; bCtx.fillRect(0, 0, blank.width, blank.height);
+        return canvas.toDataURL() === blank.toDataURL();
     }
 
-    // ==========================================
-    // Result Display & Copy
-    // ==========================================
-    function displayResults(candidates) {
-        if (!candidates || candidates.length === 0) {
-            resetResultState();
-            return;
+    document.getElementById('btn-recognize').addEventListener('click', async () => {
+        const langKey = AppState.lang === 'sv' ? 'SWE' : 'ENG';
+        const t = TRANSLATIONS[langKey];
+
+        if (currentMode === 'draw' && isCanvasBlank()) return triggerButtonError(t.btn_err_empty);
+        if (currentMode === 'image' && !attachedImageBase64) return triggerButtonError(t.btn_err_empty);
+
+        let imgBase64 = currentMode === 'draw' ? canvas.toDataURL() : attachedImageBase64;
+        const btn = document.getElementById('btn-recognize');
+        btn.classList.add('opacity-80', 'pointer-events-none');
+        btn.innerHTML = `<span class="btn-icon">⏳</span> <span>${langKey === 'SWE' ? 'Tolkar...' : 'Analyzing...'}</span>`;
+
+        try {
+            const res = await fetch('/api/predict', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imgBase64, lang: langKey })
+            });
+            const data = await res.json();
+            if (data.status === 'ok' && data.candidates && data.candidates.length > 0) { displayResults(data.candidates); } 
+            else { triggerButtonError("Inget tecken hittades"); resetResultState(); }
+        } catch (err) {
+            triggerButtonError("Nätverksfel"); resetResultState();
+        } finally {
+            btn.classList.remove('opacity-80', 'pointer-events-none');
+            btn.innerHTML = `<span class="btn-icon">🔍</span> <span id="btn-recognize-text">${t.btn_recognize}</span>`;
         }
+    });
 
+    function displayResults(candidates) {
+        if (!candidates.length) return resetResultState();
         currentTopPrediction = candidates[0];
-        heroChar.textContent = currentTopPrediction;
-
-        // Alternative candidates if more than 1
-        altCandidateButtons.innerHTML = '';
+        document.getElementById('hero-char').textContent = currentTopPrediction;
+        const altWrapper = document.getElementById('alt-candidate-buttons');
+        altWrapper.innerHTML = '';
         if (candidates.length > 1) {
-            altCandidatesWrapper.style.display = 'flex';
+            document.getElementById('alt-candidates-wrapper').classList.remove('hidden'); document.getElementById('alt-candidates-wrapper').classList.add('flex');
             candidates.slice(1).forEach(char => {
                 const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'alt-candidate-btn';
+                btn.className = 'flex-1 min-w-[60px] py-2 px-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-slate-800 dark:text-white cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition text-center';
                 btn.textContent = char;
-                btn.title = `Kopiera "${char}"`;
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    copyCharacter(char);
-                });
-                altCandidateButtons.appendChild(btn);
+                btn.onclick = e => { e.stopPropagation(); navigator.clipboard.writeText(char); };
+                altWrapper.appendChild(btn);
             });
         } else {
-            altCandidatesWrapper.style.display = 'none';
+            document.getElementById('alt-candidates-wrapper').classList.add('hidden'); document.getElementById('alt-candidates-wrapper').classList.remove('flex');
         }
-
-        resultEmptyState.style.display = 'none';
-        resultActiveState.style.display = 'flex';
+        document.getElementById('result-empty-state').classList.add('hidden'); document.getElementById('result-empty-state').classList.remove('flex');
+        document.getElementById('result-active-state').classList.remove('hidden'); document.getElementById('result-active-state').classList.add('flex');
     }
 
     function resetResultState() {
-        resultEmptyState.style.display = 'flex';
-        resultActiveState.style.display = 'none';
+        document.getElementById('result-empty-state').classList.remove('hidden'); document.getElementById('result-empty-state').classList.add('flex');
+        document.getElementById('result-active-state').classList.add('hidden'); document.getElementById('result-active-state').classList.remove('flex');
         currentTopPrediction = '';
     }
 
-    function copyCharacter(char) {
-        const t = TRANSLATIONS[currentLang];
-        navigator.clipboard.writeText(char).then(() => {
-            showToast(`"${char}" ${t.toast_copied}`);
-        });
-    }
-
-    heroResultCard.addEventListener('click', () => {
-        if (currentTopPrediction) {
-            copyCharacter(currentTopPrediction);
-        }
-    });
-
-    // Initialize
-    setLanguage(localStorage.getItem('app_lang') || 'SWE');
-});
-
-window.addEventListener('storage', (e) => {
-    if (e.key === 'theme') {
-        if (e.newValue === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-        const themeBtn = document.getElementById('ocr-theme-btn');
-        if (themeBtn) {
-            const isDark = document.documentElement.classList.contains('dark');
-            themeBtn.textContent = isDark ? '☀️' : '🌙';
-        }
-    }
-    if (e.key === 'app_lang') {
-        const targetLang = (e.newValue === 'en' || e.newValue === 'ENG') ? 'ENG' : 'SWE';
-        setLanguage(targetLang);
-    }
-});
-
-// Fullscreen Handler for OCR
-const ocrFsBtn = document.getElementById('ocr-fullscreen-btn');
-const ocrFsEnter = document.getElementById('ocrFsEnter');
-const ocrFsExit = document.getElementById('ocrFsExit');
-
-if (ocrFsBtn) {
-    ocrFsBtn.addEventListener('click', () => {
-        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen();
-            }
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen().catch(() => {});
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
-        }
-    });
-}
-
-function updateOcrFullscreen() {
-    const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
-    if (ocrFsEnter) ocrFsEnter.style.display = isFull ? 'none' : 'block';
-    if (ocrFsExit) ocrFsExit.style.display = isFull ? 'block' : 'none';
-}
-document.addEventListener('fullscreenchange', updateOcrFullscreen);
-document.addEventListener('webkitfullscreenchange', updateOcrFullscreen);
-
-
+    document.getElementById('hero-result-card').addEventListener('click', () => { if (currentTopPrediction) navigator.clipboard.writeText(currentTopPrediction); });
 </script>
-</body>
-</html>
+{% endblock %}
