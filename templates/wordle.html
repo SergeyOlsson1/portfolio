@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 
 {% block extra_header_buttons %}
+<div class="admin-only flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
+    <input type="checkbox" id="toggle-phone-mode" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 cursor-pointer">
+    <label for="toggle-phone-mode" class="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer whitespace-nowrap" data-en="Phone Mode" data-sv="Telefonläge">Phone Mode</label>
+</div>
 <button id="btn-save-db" onclick="saveLayoutToDB()" class="admin-only px-4 py-2 rounded-full text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-md transform hover:-translate-y-0.5 gap-2 items-center flex">
     💾 <span data-en="Save DB" data-sv="Spara DB">Spara DB</span>
 </button>
@@ -324,11 +328,13 @@
 
     async function saveLayoutToDB() {
         const btn = document.getElementById('btn-save-db');
+        const isPhoneMode = document.getElementById('toggle-phone-mode').checked;
+        const appId = isPhoneMode ? "wordle_mobile" : "wordle";
         btn.innerHTML = `⏳ <span>Sparar...</span>`;
         
         try {
             const payload = {
-                app_id: "wordle",
+                app_id: appId,
                 data: JSON.stringify({ scales: AppState.data.wordleScales_v8, positions: AppState.data.wordlePositions_v8 })
             };
             const res = await fetch('/api/save_layout', { 
@@ -338,14 +344,24 @@
             });
         } catch(e) { } 
         finally {
-            btn.innerHTML = `💾 <span>Spara Layout</span>`;
+            btn.innerHTML = `💾 <span data-en="Save DB" data-sv="Spara DB">Spara DB</span>`;
+            if (typeof updateGlobalUI === 'function') updateGlobalUI();
         }
     }
 
     async function loadLayoutFromDB() {
         try {
-            const res = await fetch('/api/load_layout/wordle');
-            const out = await res.json();
+            const isMobileScreen = window.innerWidth < 1024;
+            const targetAppId = isMobileScreen ? "wordle_mobile" : "wordle";
+            
+            let res = await fetch(`/api/load_layout/${targetAppId}`);
+            let out = await res.json();
+            
+            if (isMobileScreen && out.status === 'not_found') {
+                res = await fetch(`/api/load_layout/wordle`);
+                out = await res.json();
+            }
+
             if (out.status === 'ok' && out.data) {
                 const parsed = JSON.parse(out.data);
                 if (parsed.scales) AppState.data.wordleScales_v8 = parsed.scales;

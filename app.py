@@ -11,7 +11,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 logging.getLogger('tensorflow').setLevel(logging.FATAL)
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
@@ -24,6 +24,19 @@ app = FastAPI(title="Portfolio SPA Architecture")
 
 # Mount the static directory so images like rfr_1.png load correctly
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Middleware to prevent caching on all dynamic HTML responses
+@app.middleware("http")
+async def add_no_cache_headers(request: Request, call_next):
+    response = await call_next(request)
+    
+    # Exclude static assets from no-cache rules so they stay optimized
+    if not request.url.path.startswith("/static"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        
+    return response
 
 # Register the routes
 app.include_router(portfolio_router)
