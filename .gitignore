@@ -40,31 +40,15 @@ htmlcov/
 .DS_Store
 
 # Sensitive data
-data/
 .env
 .env.local
 secrets.json
 
-# Database configuration with credentials
-create_database.py
-init_db.py
-*.db
-
-# User uploads and generated content
-user uploads/
+# User uploads and temporary files
+user_uploads/
 saved_drawings/
 screenshots/
 temp.py
-
-# Large model files (keep source code, exclude trained models)
-trained_models/
-*.keras
-*.h5
-*.joblib
-*.pkl
-*.pickle
-*.pk1
-*.joblib
 
 # Jupyter
 .ipynb_checkpoints/
@@ -74,5 +58,4 @@ trained_models/
 node_modules/
 
 # OS
-.DS_Store
 Thumbs.db
