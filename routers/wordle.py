@@ -4,12 +4,21 @@ from pydantic import BaseModel
 from pathlib import Path
 import sqlite3
 import json
+import os
 
 router = APIRouter()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = BASE_DIR / "templates"
-DB_PATH = BASE_DIR / "data" / "layout.db"
+
+# Check if running on Azure, route to persistent storage if true
+if os.environ.get("WEBSITE_SITE_NAME"):
+    DATA_DIR = Path("/home/data")
+else:
+    DATA_DIR = BASE_DIR / "data"
+
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+DB_PATH = DATA_DIR / "layout.db"
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
@@ -28,9 +37,10 @@ async def serve_wordle(request: Request):
 @router.get("/api/wordle-dict")
 async def get_wordle_dict():
     """Serves the Wordle JSON dictionaries to the frontend."""
-    # Updated to match your exact file structure names
-    guesses_path = BASE_DIR / "data" / "wordle_dictionary_10k.json"
-    targets_path = BASE_DIR / "data" / "wordle_targets_2k.json"
+    # Data directory for JSON dicts remains in the repo structure
+    repo_data_path = BASE_DIR / "data"
+    guesses_path = repo_data_path / "wordle_dictionary_10k.json"
+    targets_path = repo_data_path / "wordle_targets_2k.json"
     
     guesses = []
     targets = []

@@ -1,4 +1,3 @@
-# routers/portfolio.py
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -6,12 +5,21 @@ from pathlib import Path
 import sqlite3
 import bcrypt
 import json
+import os
 
 router = APIRouter()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = BASE_DIR / "templates"
-AUTH_DB_PATH = BASE_DIR / "data" / "database.db"
+
+# Check if running on Azure, route to persistent storage if true
+if os.environ.get("WEBSITE_SITE_NAME"):
+    DATA_DIR = Path("/home/data")
+else:
+    DATA_DIR = BASE_DIR / "data"
+
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+AUTH_DB_PATH = DATA_DIR / "database.db"
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
@@ -25,6 +33,7 @@ class PortfolioState(BaseModel):
 def init_db():
     with sqlite3.connect(AUTH_DB_PATH) as conn:
         c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS admin_users (username TEXT PRIMARY KEY, password_hash TEXT)''')
         c.execute('''CREATE TABLE IF NOT EXISTS portfolio_state (id INTEGER PRIMARY KEY, state_data TEXT)''')
         conn.commit()
 
@@ -35,7 +44,7 @@ async def serve_portfolio(request: Request):
     return templates.TemplateResponse(
         request=request, 
         name="portfolio.html", 
-        context={"page_title": "Portfolio SPA", "back_url": "/"}
+        context={"page_title": "Portfolio Sergey Olsson", "back_url": "/"}
     )
 
 @router.post("/api/login")
