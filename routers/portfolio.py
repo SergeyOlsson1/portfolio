@@ -6,11 +6,13 @@ import sqlite3
 import bcrypt
 import json
 import os
+import shutil
 
 router = APIRouter()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = BASE_DIR / "templates"
+REPO_DB_PATH = BASE_DIR / "data" / "database.db"
 
 # Check if running on Azure, route to persistent storage if true
 if os.environ.get("WEBSITE_SITE_NAME"):
@@ -20,6 +22,11 @@ else:
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 AUTH_DB_PATH = DATA_DIR / "database.db"
+
+# If on Azure and the persistent DB is missing, copy the one from the repository
+if os.environ.get("WEBSITE_SITE_NAME") and not AUTH_DB_PATH.exists():
+    if REPO_DB_PATH.exists():
+        shutil.copy2(REPO_DB_PATH, AUTH_DB_PATH)
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
@@ -44,7 +51,7 @@ async def serve_portfolio(request: Request):
     return templates.TemplateResponse(
         request=request, 
         name="portfolio.html", 
-        context={"page_title": "Portfolio Sergey Olsson", "back_url": "/"}
+        context={"page_title": "Portfolio SPA", "back_url": "/"}
     )
 
 @router.post("/api/login")
