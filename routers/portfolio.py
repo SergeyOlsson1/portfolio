@@ -6,7 +6,6 @@ import sqlite3
 import bcrypt
 import json
 import os
-import shutil
 
 router = APIRouter()
 
@@ -23,11 +22,6 @@ else:
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 AUTH_DB_PATH = DATA_DIR / "database.db"
 
-# If on Azure and the persistent DB is missing, copy the one from the repository
-if os.environ.get("WEBSITE_SITE_NAME") and not AUTH_DB_PATH.exists():
-    if REPO_DB_PATH.exists():
-        shutil.copy2(REPO_DB_PATH, AUTH_DB_PATH)
-
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 class LoginRequest(BaseModel):
@@ -43,6 +37,19 @@ def init_db():
         c.execute('''CREATE TABLE IF NOT EXISTS admin_users (username TEXT PRIMARY KEY, password_hash TEXT)''')
         c.execute('''CREATE TABLE IF NOT EXISTS portfolio_state (id INTEGER PRIMARY KEY, state_data TEXT)''')
         conn.commit()
+
+        # Migrate admin credentials if the persistent database is empty
+        c.execute('SELECT COUNT(*) FROM admin_users')
+        if c.fetchone()[0] == 0 and REPO_DB_PATH.exists():
+            with sqlite3.connect(REPO_DB_PATH) as repo_conn:
+                repo_c = repo_conn.cursor()
+                try:
+                    repo_c.execute('SELECT username, password_hash FROM admin_users')
+                    users = repo_c.fetchall()
+                    c.executemany('INSERT OR IGNORE INTO admin_users (username, password_hash) VALUES (?, ?)', users)
+                    conn.commit()
+                except sqlite3.OperationalError:
+                    pass
 
 init_db()
 
