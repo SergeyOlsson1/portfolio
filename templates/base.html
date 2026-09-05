@@ -130,7 +130,9 @@
                 let db = {};
                 if (result.status === 'ok' && result.data && Object.keys(result.data).length > 0) {
                     db = result.data;
-                    localStorage.setItem('cached_portfolio_data', JSON.stringify(db));
+                    try {
+                        localStorage.setItem('cached_portfolio_data', JSON.stringify(db));
+                    } catch(storageErr) {}
                 } else if (cached) {
                     db = cached;
                 }
@@ -151,7 +153,12 @@
         async function saveGlobalData() {
             if (!AppState.isAdmin) return;
             try {
-                localStorage.setItem('cached_portfolio_data', JSON.stringify(AppState.data));
+                try {
+                    localStorage.setItem('cached_portfolio_data', JSON.stringify(AppState.data));
+                } catch (storageErr) {
+                    console.warn("Local storage quota exceeded; bypassing client cache to save directly to server.");
+                }
+
                 await fetch('/api/portfolio_data', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -246,7 +253,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await initGlobalData();
             updateGlobalUI();
-            if (typeof pageInit === 'function') pageInit();
+            if (typeof pageInit === 'function') await pageInit();
         });
     </script>
     {% block scripts %}{% endblock %}

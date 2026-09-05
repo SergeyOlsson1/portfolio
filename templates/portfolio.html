@@ -62,52 +62,155 @@
     </div>
 </div>
 
-<!-- Extra Edit Modals Specific to Portfolio -->
+<!-- Edit Modals -->
 <div id="modal-edit-title" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-sm shadow-2xl border border-white/20 dark:border-slate-700/50 relative scale-95 opacity-0 transition-all duration-300 transform">
         <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Redigera Sidtitel</h2>
-        <div class="space-y-4 mb-8"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Sidtitel / Site Title</label><input type="text" id="edit-site-title" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
-        <div class="flex gap-3"><button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveTitle()">Spara</button><button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button></div>
+        <div class="space-y-4 mb-8">
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Sidtitel / Site Title</label>
+                <input type="text" id="edit-site-title" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveTitle()">Spara</button>
+            <button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button>
+        </div>
     </div>
 </div>
+
 <div id="modal-edit-footer" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-lg shadow-2xl border border-white/20 dark:border-slate-700/50 max-h-[90vh] overflow-y-auto relative scale-95 opacity-0 transition-all duration-300 transform">
         <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Redigera Sidfot</h2>
         <div class="space-y-5 mb-8">
-            <div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Upphovsrätt (SV)</label><input type="text" id="edit-footer-copy-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
-            <div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Upphovsrätt (EN)</label><input type="text" id="edit-footer-copy-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
-            <div class="border-t border-slate-200 dark:border-slate-700 pt-5"><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Teknik & Hosting (SV)</label><input type="text" id="edit-footer-tech-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
-            <div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Teknik & Hosting (EN)</label><input type="text" id="edit-footer-tech-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Upphovsrätt (SV)</label>
+                <input type="text" id="edit-footer-copy-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Upphovsrätt (EN)</label>
+                <input type="text" id="edit-footer-copy-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+            </div>
+            <div class="border-t border-slate-200 dark:border-slate-700 pt-5">
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Teknik & Hosting (SV)</label>
+                <input type="text" id="edit-footer-tech-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Teknik & Hosting (EN)</label>
+                <input type="text" id="edit-footer-tech-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+            </div>
         </div>
-        <div class="flex gap-3"><button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveFooter()">Spara Ändringar</button><button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button></div>
+        <div class="flex gap-3">
+            <button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveFooter()">Spara Ändringar</button>
+            <button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button>
+        </div>
     </div>
 </div>
+
 <div id="modal-edit-hero" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-lg shadow-2xl border border-white/20 dark:border-slate-700/50 max-h-[90vh] overflow-y-auto relative scale-95 opacity-0 transition-all duration-300 transform">
         <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Redigera Profil</h2>
         <div class="space-y-5 mb-8">
-            <div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Namn / Name</label><input type="text" id="edit-hero-name" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
-            <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Roll (SV)</label><input type="text" id="edit-hero-role-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Roll (EN)</label><input type="text" id="edit-hero-role-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
-            <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Boende (SV)</label><input type="text" id="edit-hero-live-sv" placeholder="t.ex. Bor i City" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Boende (EN)</label><input type="text" id="edit-hero-live-en" placeholder="e.g. Living in City" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
-            <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Studier (SV)</label><input type="text" id="edit-hero-study-sv" placeholder="t.ex. Student i City" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Studier (EN)</label><input type="text" id="edit-hero-study-en" placeholder="e.g. Studying in City" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
-            <div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Taggar (Kommaseparerade)</label><input type="text" id="edit-hero-tags" placeholder="Python, HTML, CSS..." class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Namn / Name</label>
+                <input type="text" id="edit-hero-name" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Roll (SV)</label>
+                    <input type="text" id="edit-hero-role-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Roll (EN)</label>
+                    <input type="text" id="edit-hero-role-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Boende (SV)</label>
+                    <input type="text" id="edit-hero-live-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Boende (EN)</label>
+                    <input type="text" id="edit-hero-live-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Studier (SV)</label>
+                    <input type="text" id="edit-hero-study-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Studier (EN)</label>
+                    <input type="text" id="edit-hero-study-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Taggar (Kommaseparerade)</label>
+                <input type="text" id="edit-hero-tags" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+            </div>
         </div>
-        <div class="flex gap-3"><button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveHero()">Spara Ändringar</button><button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button></div>
+        <div class="flex gap-3">
+            <button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveHero()">Spara Ändringar</button>
+            <button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button>
+        </div>
     </div>
 </div>
+
 <div id="modal-edit" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-2xl shadow-2xl border border-white/20 dark:border-slate-700/50 max-h-[90vh] overflow-y-auto relative scale-95 opacity-0 transition-all duration-300 transform">
         <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Redigera Projekt</h2>
         <input type="hidden" id="edit-idx">
         <div class="space-y-5 mb-8">
-            <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Titel (SV)</label><input type="text" id="edit-title-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Titel (EN)</label><input type="text" id="edit-title-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
-            <div class="hidden"><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Bild URL (Omslag)</label><input type="text" id="edit-img" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Kort Beskrivning (SV)</label><textarea id="edit-desc-sv" rows="2" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all resize-none"></textarea></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Kort Beskrivning (EN)</label><textarea id="edit-desc-en" rows="2" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all resize-none"></textarea></div></div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-700 pt-5"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Lång Beskrivning (SV)</label><textarea id="edit-details-sv" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></textarea></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Lång Beskrivning (EN)</label><textarea id="edit-details-en" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></textarea></div></div>
-            <div class="pt-5 border-t border-slate-200 dark:border-slate-700 mt-5"><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Taggar / Tags (Kommaseparerade)</label><input type="text" id="edit-proj-tags" placeholder="TensorFlow, Keras, React..." class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-700 pt-5 mt-5"><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Applikations Länk (Intern)</label><input type="text" id="edit-app-link" placeholder="/wordle" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div><div><label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Extern Länk (URL)</label><input type="text" id="edit-ext-link" placeholder="https://example.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></div></div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Titel (SV)</label>
+                    <input type="text" id="edit-title-sv" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Titel (EN)</label>
+                    <input type="text" id="edit-title-en" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Kort Beskrivning (SV)</label>
+                    <textarea id="edit-desc-sv" rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Kort Beskrivning (EN)</label>
+                    <textarea id="edit-desc-en" rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all resize-none"></textarea>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-700 pt-5">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Lång Beskrivning (SV)</label>
+                    <textarea id="edit-details-sv" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Lång Beskrivning (EN)</label>
+                    <textarea id="edit-details-en" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"></textarea>
+                </div>
+            </div>
+            <div class="pt-5 border-t border-slate-200 dark:border-slate-700 mt-5">
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Taggar (Kommaseparerade)</label>
+                <input type="text" id="edit-proj-tags" placeholder="React, Node.js..." class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-700 pt-5 mt-5">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Intern Länk</label>
+                    <input type="text" id="edit-app-link" placeholder="/wordle" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Extern Länk (URL)</label>
+                    <input type="text" id="edit-ext-link" placeholder="https://example.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all">
+                </div>
+            </div>
         </div>
-        <div class="flex gap-3"><button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveProject()">Spara Ändringar</button><button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button></div>
+        <div class="flex gap-3">
+            <button class="flex-1 px-4 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all" onclick="saveProject()">Spara Ändringar</button>
+            <button class="px-4 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModals()">Avbryt</button>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -170,10 +273,9 @@
     window.AppState.data = window.AppState.data || {};
 
     function pageInit() {
-        // Read-only initialization. Defaults are loaded in memory for display only.
         for (let k in PORTFOLIO_DEFAULTS) {
             if (AppState.data[k] === undefined || AppState.data[k] === null) {
-                AppState.data[k] = PORTFOLIO_DEFAULTS[k];
+                AppState.data[k] = JSON.parse(JSON.stringify(PORTFOLIO_DEFAULTS[k]));
             }
         }
         navigate('portfolio');
@@ -343,7 +445,6 @@
         document.getElementById('edit-idx').value = idx;
         document.getElementById('edit-title-sv').value = p.title_sv || '';
         document.getElementById('edit-title-en').value = p.title_en || '';
-        document.getElementById('edit-img').value = p.img || '';
         document.getElementById('edit-desc-sv').value = p.desc_sv || '';
         document.getElementById('edit-desc-en').value = p.desc_en || '';
         document.getElementById('edit-details-sv').value = p.details_sv || '';
@@ -412,13 +513,14 @@
     }
 
     async function saveProject() {
-        const idx = document.getElementById('edit-idx').value;
-        if (!AppState.data.projects) AppState.data.projects = [...PORTFOLIO_DEFAULTS.projects];
+        const idx = parseInt(document.getElementById('edit-idx').value, 10);
+        if (!AppState.data.projects) {
+            AppState.data.projects = JSON.parse(JSON.stringify(PORTFOLIO_DEFAULTS.projects));
+        }
         let p = AppState.data.projects[idx];
         if (p) {
             p.title_sv = document.getElementById('edit-title-sv').value;
             p.title_en = document.getElementById('edit-title-en').value;
-            p.img = document.getElementById('edit-img').value;
             p.desc_sv = document.getElementById('edit-desc-sv').value;
             p.desc_en = document.getElementById('edit-desc-en').value;
             p.details_sv = document.getElementById('edit-details-sv').value;
@@ -465,7 +567,9 @@
         if (!file) return;
         const reader = new FileReader();
         reader.onload = async function(evt) {
-            if (!AppState.data.projects) AppState.data.projects = [...PORTFOLIO_DEFAULTS.projects];
+            if (!AppState.data.projects) {
+                AppState.data.projects = JSON.parse(JSON.stringify(PORTFOLIO_DEFAULTS.projects));
+            }
             if (AppState.data.projects[imageUploadTarget]) {
                 AppState.data.projects[imageUploadTarget].img = evt.target.result;
                 await saveGlobalData();

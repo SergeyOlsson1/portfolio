@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 REPO_DB_PATH = BASE_DIR / "data" / "database.db"
 
-# Check if running on Azure, route to persistent storage if true
+# Route to persistent storage on Azure App Service; fall back to repo data directory locally
 if os.environ.get("WEBSITE_SITE_NAME"):
     DATA_DIR = Path("/home/data")
 else:
@@ -52,7 +52,7 @@ def init_db():
                 except sqlite3.OperationalError:
                     pass
 
-                # Migrate portfolio state if persistent database has no state saved
+                # Migrate portfolio state if persistent database has no saved records
                 try:
                     c.execute('SELECT COUNT(*) FROM portfolio_state')
                     if c.fetchone()[0] == 0:
