@@ -38,18 +38,32 @@ def init_db():
         c.execute('''CREATE TABLE IF NOT EXISTS portfolio_state (id INTEGER PRIMARY KEY, state_data TEXT)''')
         conn.commit()
 
-        # Migrate admin credentials if the persistent database is empty
-        c.execute('SELECT COUNT(*) FROM admin_users')
-        if c.fetchone()[0] == 0 and REPO_DB_PATH.exists():
+        if REPO_DB_PATH.exists():
             with sqlite3.connect(REPO_DB_PATH) as repo_conn:
                 repo_c = repo_conn.cursor()
+                
+                # Migrate admin credentials if persistent database is empty
                 try:
-                    repo_c.execute('SELECT username, password_hash FROM admin_users')
-                    users = repo_c.fetchall()
-                    c.executemany('INSERT OR IGNORE INTO admin_users (username, password_hash) VALUES (?, ?)', users)
-                    conn.commit()
+                    c.execute('SELECT COUNT(*) FROM admin_users')
+                    if c.fetchone()[0] == 0:
+                        repo_c.execute('SELECT username, password_hash FROM admin_users')
+                        users = repo_c.fetchall()
+                        c.executemany('INSERT OR IGNORE INTO admin_users (username, password_hash) VALUES (?, ?)', users)
                 except sqlite3.OperationalError:
                     pass
+
+                # Migrate portfolio state if persistent database has no state saved
+                try:
+                    c.execute('SELECT COUNT(*) FROM portfolio_state')
+                    if c.fetchone()[0] == 0:
+                        repo_c.execute('SELECT id, state_data FROM portfolio_state WHERE id = 1')
+                        row = repo_c.fetchone()
+                        if row:
+                            c.execute('INSERT OR REPLACE INTO portfolio_state (id, state_data) VALUES (?, ?)', row)
+                except sqlite3.OperationalError:
+                    pass
+
+        conn.commit()
 
 init_db()
 
@@ -82,12 +96,20 @@ def get_portfolio_data():
         c = conn.cursor()
         c.execute('SELECT state_data FROM portfolio_state WHERE id = 1')
         row = c.fetchone()
-        if row:
+        if row and row[0]:
             return {"status": "ok", "data": json.loads(row[0])}
         return {"status": "empty"}
 
 @router.post("/api/portfolio_data")
 def save_portfolio_data(payload: PortfolioState):
+    if not payload.data or payload.data.strip() == "{}":
+        raise HTTPException(status_code=400, detail="Refusing to overwrite with empty state")
+    
+    try:
+        json.loads(payload.data)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
     with sqlite3.connect(AUTH_DB_PATH) as conn:
         c = conn.cursor()
         c.execute('INSERT OR REPLACE INTO portfolio_state (id, state_data) VALUES (1, ?)', (payload.data,))

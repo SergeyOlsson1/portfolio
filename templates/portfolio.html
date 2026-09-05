@@ -62,7 +62,7 @@
     </div>
 </div>
 
-<!-- Extra Edit Modals Specfic to Portfolio -->
+<!-- Extra Edit Modals Specific to Portfolio -->
 <div id="modal-edit-title" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-sm shadow-2xl border border-white/20 dark:border-slate-700/50 relative scale-95 opacity-0 transition-all duration-300 transform">
         <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Redigera Sidtitel</h2>
@@ -168,19 +168,14 @@
 
     window.AppState = window.AppState || {};
     window.AppState.data = window.AppState.data || {};
-    for (let k in PORTFOLIO_DEFAULTS) {
-        if (window.AppState.data[k] === undefined || window.AppState.data[k] === null) {
-            window.AppState.data[k] = PORTFOLIO_DEFAULTS[k];
-        }
-    }
 
-    async function pageInit() {
+    function pageInit() {
+        // Read-only initialization. Defaults are loaded in memory for display only.
         for (let k in PORTFOLIO_DEFAULTS) {
             if (AppState.data[k] === undefined || AppState.data[k] === null) {
                 AppState.data[k] = PORTFOLIO_DEFAULTS[k];
             }
         }
-        await saveGlobalData();
         navigate('portfolio');
     }
 
