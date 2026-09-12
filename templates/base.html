@@ -72,7 +72,7 @@
 
     <!-- Footer -->
     <footer class="mt-auto border-t border-slate-200/50 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/30 backdrop-blur-md relative group">
-        <button class="admin-only absolute -top-4 left-1/2 -translate-x-1/2 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 w-8 h-8 rounded-full items-center justify-center shadow-lg hover:scale-110 transition-transform z-10" title="Redigera Footer" onclick="if(typeof openEditFooter === 'function') openEditFooter()">⚙️</button>
+        <button class="admin-only absolute -top-4 left-1/2 -translate-y-1/2 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 w-8 h-8 rounded-full items-center justify-center shadow-lg hover:scale-110 transition-transform z-10" title="Redigera Footer" onclick="if(typeof openEditFooter === 'function') openEditFooter()">⚙️</button>
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                 <div class="text-center md:text-left">
@@ -102,7 +102,7 @@
         </div>
     </div>
 
-    <!-- Global State & Logic -->
+    <!-- Global State Initialization -->
     <script>
         const GLOBAL_DEFAULT = {
             siteTitle: "SPA Portfolio",
@@ -128,8 +128,8 @@
                 const res = await fetch('/api/portfolio_data');
                 const result = await res.json();
                 let db = {};
-                if (result.status === 'ok' && result.data && Object.keys(result.data).length > 0) {
-                    db = result.data;
+                if (result.status === 'ok' && result.data) {
+                    db = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
                     try {
                         localStorage.setItem('cached_portfolio_data', JSON.stringify(db));
                     } catch(storageErr) {}
@@ -156,7 +156,7 @@
                 try {
                     localStorage.setItem('cached_portfolio_data', JSON.stringify(AppState.data));
                 } catch (storageErr) {
-                    console.warn("Local storage quota exceeded; bypassing client cache to save directly to server.");
+                    console.warn("Storage quota reached; persisting directly to server.");
                 }
 
                 await fetch('/api/portfolio_data', {
@@ -178,13 +178,13 @@
 
         function toggleGlobalLang() {
             AppState.lang = AppState.lang === 'sv' ? 'en' : 'sv';
-            localStorage.setItem('lang', AppState.lang);
+            try { localStorage.setItem('lang', AppState.lang); } catch(e) {}
             updateGlobalUI();
         }
 
         function toggleGlobalTheme() {
             document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            try { localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); } catch(e) {}
         }
 
         function updateGlobalUI() {
@@ -214,12 +214,21 @@
         }
 
         function openModal(id) { 
-            const m = document.getElementById(id); m.classList.remove('hidden'); m.classList.add('flex'); 
-            requestAnimationFrame(() => { m.querySelector('div').classList.remove('scale-95', 'opacity-0'); m.querySelector('div').classList.add('scale-100', 'opacity-100'); }); 
+            const m = document.getElementById(id); 
+            if (!m) return;
+            m.classList.remove('hidden'); m.classList.add('flex'); 
+            requestAnimationFrame(() => { 
+                const inner = m.querySelector('div');
+                if (inner) {
+                    inner.classList.remove('scale-95', 'opacity-0'); 
+                    inner.classList.add('scale-100', 'opacity-100'); 
+                }
+            }); 
         }
 
         function closeModals() { 
             document.querySelectorAll('.fixed.inset-0').forEach(m => { 
+                if (m.id === 'confettiCanvas') return;
                 const inner = m.querySelector('div'); 
                 if(inner) { inner.classList.remove('scale-100', 'opacity-100'); inner.classList.add('scale-95', 'opacity-0'); } 
                 setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300); 
@@ -229,7 +238,7 @@
         function openLogin() {
             if (AppState.isAdmin) {
                 AppState.isAdmin = false;
-                localStorage.setItem('isAdmin', 'false');
+                try { localStorage.setItem('isAdmin', 'false'); } catch(e) {}
                 updateGlobalUI();
             } else {
                 document.getElementById('log-user').value = ''; 
@@ -245,16 +254,34 @@
             const err = document.getElementById('login-error');
             try {
                 const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username: u, password: p}) });
-                if(res.ok) { AppState.isAdmin = true; localStorage.setItem('isAdmin', 'true'); closeModals(); updateGlobalUI(); } 
-                else { err.classList.add('opacity-100'); }
+                if(res.ok) { 
+                    AppState.isAdmin = true; 
+                    try { localStorage.setItem('isAdmin', 'true'); } catch(e) {}
+                    closeModals(); 
+                    updateGlobalUI(); 
+                } else { 
+                    err.classList.add('opacity-100'); 
+                }
             } catch(e) { err.textContent = "Error"; err.classList.add('opacity-100'); }
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        async function bootstrap() {
             await initGlobalData();
             updateGlobalUI();
-            if (typeof pageInit === 'function') await pageInit();
-        });
+            if (typeof pageInit === 'function') {
+                try {
+                    await pageInit();
+                } catch(err) {
+                    console.error("Error executing pageInit:", err);
+                }
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bootstrap);
+        } else {
+            bootstrap();
+        }
     </script>
     {% block scripts %}{% endblock %}
 </body>

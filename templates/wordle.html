@@ -46,7 +46,6 @@
 {% block content %}
 <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-[150] w-full h-full"></canvas>
 
-<!-- Drag and Custom Action Utilities -->
 <div class="w-full max-w-5xl px-4 mt-2 mb-12 relative flex-grow flex flex-col items-center">
     
     <div id="wrap-banner" class="relative transition-transform duration-200 z-10 w-full">
@@ -71,7 +70,7 @@
     </div>
 
     <div class="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6 lg:gap-10 w-full pt-8">
-        <!-- Candidates -->
+        <!-- Candidates Counter -->
         <div class="hidden lg:flex flex-1 justify-end">
             <div id="wrap-candidates" class="relative transition-transform duration-200 origin-top-right">
                 <div class="admin-only absolute -top-8 -left-4 flex gap-2 z-[60] group items-center">
@@ -89,7 +88,7 @@
             </div>
         </div>
 
-        <!-- Board -->
+        <!-- Grid Board -->
         <div class="flex flex-col items-center shrink-0">
             <div id="wrap-board" class="relative transition-transform duration-200 flex flex-col items-center origin-top">
                 <div class="admin-only absolute -top-8 -right-12 flex gap-2 z-[60] group items-center">
@@ -108,7 +107,7 @@
             </div>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- Action Controls -->
         <div class="flex-1 w-full lg:w-auto flex flex-row lg:flex-col items-center lg:items-stretch justify-center gap-3 lg:gap-4">
             <div id="wrap-actions" class="relative transition-transform duration-200 w-full flex flex-row lg:flex-col gap-3 lg:gap-4 items-center lg:items-stretch justify-center origin-top-left">
                 <div class="admin-only absolute -top-8 -left-4 flex gap-2 z-[60] group items-center">
@@ -128,7 +127,7 @@
 
     <div id="messageBox" class="text-sm font-semibold text-center mt-6 min-h-[24px] text-brand-600 dark:text-cyan-400 transition-opacity"></div>
 
-    <!-- Keyboard -->
+    <!-- Virtual Keyboard -->
     <div id="wrap-keyboard" class="relative w-full max-w-[500px] mx-auto mt-4 transition-transform duration-200 flex flex-col gap-2 origin-top">
         <div class="admin-only absolute -top-8 -left-4 flex gap-2 z-[60] group items-center">
             <div class="metrics-display bg-[#0f172a]/95 text-cyan-400 text-[11px] font-mono px-3 py-1.5 rounded-full border border-slate-700 whitespace-nowrap shadow-xl">x: 0 | y: 0 | scale: 1.00</div>
@@ -141,7 +140,7 @@
     </div>
 </div>
 
-<!-- Wordle App Specific Modals -->
+<!-- Scale Modal -->
 <div id="modal-scale" class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl w-full max-w-sm shadow-2xl relative scale-95 opacity-0 transition-all duration-300 transform border border-white/20 dark:border-slate-700/50">
         <h2 class="text-2xl font-bold mb-4 text-slate-900 dark:text-white" data-en="Adjust Size" data-sv="Ändra Storlek">Ändra Storlek</h2>
@@ -158,6 +157,7 @@
     </div>
 </div>
 
+<!-- End Game Modal -->
 <div id="modalOverlay" class="fixed inset-0 bg-slate-900/40 dark:bg-black/70 backdrop-blur-md z-[200] hidden items-center justify-center p-4 transition-all duration-300">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl scale-95 opacity-0 transition-all duration-300 transform">
         <div id="modalIcon" class="text-5xl mb-2">🎉</div>
@@ -188,6 +188,7 @@
     </div>
 </div>
 
+<!-- Reset Confirmation Modal -->
 <div id="confirmResetModal" class="fixed inset-0 bg-slate-900/40 dark:bg-black/70 backdrop-blur-md z-[200] hidden items-center justify-center p-4 transition-all duration-300">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl scale-95 opacity-0 transition-all duration-300 transform">
         <div class="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-500 flex items-center justify-center mx-auto mb-4 text-3xl">🔄</div>
@@ -200,6 +201,7 @@
     </div>
 </div>
 
+<!-- Bot Challenge Modal -->
 <div id="botConfigModal" class="fixed inset-0 bg-slate-900/40 dark:bg-black/70 backdrop-blur-md z-[200] hidden items-center justify-center p-4 transition-all duration-300">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative scale-95 opacity-0 transition-all duration-300 transform">
         <button id="closeBotConfigBtn" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 dark:hover:text-white transition w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">✕</button>
@@ -242,6 +244,7 @@
     </div>
 </div>
 
+<!-- Leaderboard Modal -->
 <div id="leaderboardModal" class="fixed inset-0 bg-slate-900/40 dark:bg-black/70 backdrop-blur-md z-[200] hidden items-center justify-center p-4 transition-all duration-300">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl flex flex-col relative max-h-[85vh] scale-95 opacity-0 transition-all duration-300 transform">
         <button id="closeLeaderboardBtn" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 dark:hover:text-white transition w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">✕</button>
@@ -275,12 +278,12 @@
         if (typeof updateButtons === "function") updateButtons(); 
         if (typeof isGameOver !== 'undefined' && isGameOver) {
             const won = gameScore > 0;
-            document.getElementById('modalTitle').textContent = won ? t("Brilliant! Solved!", "Strålande! Löst!") : t("Game Over", "Spelet Över");
+            const title = document.getElementById('modalTitle');
+            if (title) title.textContent = won ? t("Brilliant! Solved!", "Strålande! Löst!") : t("Game Over", "Spelet Över");
         }
     }
 
-    // --- Dynamic Dictionary Loader ---
-    let DICTIONARY = ["CRANE", "TRACE", "SLATE", "LIONS", "AUDIO", "HOUSE", "WORLD"]; // Fallback
+    let DICTIONARY = ["CRANE", "TRACE", "SLATE", "LIONS", "AUDIO", "HOUSE", "WORLD"];
     let validWords = [...DICTIONARY]; 
 
     async function loadDictionaries() {
@@ -289,10 +292,11 @@
             if (res.ok) {
                 const data = await res.json();
                 if (data.targets && data.targets.length > 0) {
-                    DICTIONARY = data.targets;
+                    DICTIONARY = data.targets.map(w => String(w).toUpperCase().trim());
                 }
                 if (data.guesses && data.guesses.length > 0) {
-                    validWords = [...new Set([...data.guesses, ...DICTIONARY])];
+                    const upperGuesses = data.guesses.map(w => String(w).toUpperCase().trim());
+                    validWords = [...new Set([...upperGuesses, ...DICTIONARY])];
                 } else {
                     validWords = [...DICTIONARY];
                 }
@@ -301,10 +305,11 @@
             console.error("Dictionary load failed", e);
         }
     }
-    // ---------------------------------
 
-    // Called automatically by base.html on load
     async function pageInit() {
+        if (!AppState.data || typeof AppState.data !== 'object') {
+            AppState.data = {};
+        }
         if (!AppState.data.wordleScales_v8) { 
             AppState.data.wordleScales_v8 = { 'wrap-candidates': 1.00, 'wrap-board': 1.00, 'wrap-actions': 1.00, 'wrap-keyboard': 1.00, 'wrap-banner': 1.00 }; 
         }
@@ -317,12 +322,24 @@
                 'wrap-banner': {x: 0, y: 0} 
             }; 
         }
-        localStorage.setItem('db', JSON.stringify(AppState.data));
+        
+        try {
+            localStorage.setItem('db', JSON.stringify(AppState.data));
+        } catch(e) {
+            console.warn("Storage quota exceeded, continuing layout init:", e);
+        }
 
-        // Fetch Dictionaries AND restore layout positions concurrently
+        // Initialize board state immediately so rendering occurs instantly
+        initGame(); 
+        applyTransforms();
+
+        // Concurrently fetch dictionary and saved DB layout
         await Promise.all([loadDictionaries(), loadLayoutFromDB()]);
         
-        initGame(); 
+        if (!isGameOver && currentRow === 0 && currentCol === 0) {
+            targetWord = DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)];
+        }
+        updateCandidateCounter();
         applyTransforms();
     }
 
@@ -337,7 +354,7 @@
                 app_id: appId,
                 data: JSON.stringify({ scales: AppState.data.wordleScales_v8, positions: AppState.data.wordlePositions_v8 })
             };
-            const res = await fetch('/api/save_layout', { 
+            await fetch('/api/save_layout', { 
                 method: 'POST', 
                 headers: {'Content-Type': 'application/json'}, 
                 body: JSON.stringify(payload) 
@@ -363,10 +380,12 @@
             }
 
             if (out.status === 'ok' && out.data) {
-                const parsed = JSON.parse(out.data);
+                const parsed = typeof out.data === 'string' ? JSON.parse(out.data) : out.data;
                 if (parsed.scales) AppState.data.wordleScales_v8 = parsed.scales;
                 if (parsed.positions) AppState.data.wordlePositions_v8 = parsed.positions;
-                localStorage.setItem('db', JSON.stringify(AppState.data));
+                try {
+                    localStorage.setItem('db', JSON.stringify(AppState.data));
+                } catch(e) {}
             }
         } catch(e) {}
     }
@@ -379,13 +398,13 @@
         if (!el) return;
         let metricEl = el.querySelector('.metrics-display');
         if (!metricEl) return;
-        let s = AppState.data.wordleScales_v8[id] || 1;
-        let pos = AppState.data.wordlePositions_v8[id] || {x: 0, y: 0};
+        let s = (AppState.data && AppState.data.wordleScales_v8) ? (AppState.data.wordleScales_v8[id] || 1) : 1;
+        let pos = (AppState.data && AppState.data.wordlePositions_v8) ? (AppState.data.wordlePositions_v8[id] || {x: 0, y: 0}) : {x: 0, y: 0};
         metricEl.innerText = `x: ${Math.round(pos.x)} | y: ${Math.round(pos.y)} | scale: ${parseFloat(s).toFixed(2)}`;
     }
 
     function applyTransforms() {
-        if(!AppState.data.wordleScales_v8 || !AppState.data.wordlePositions_v8) return;
+        if (!AppState.data || !AppState.data.wordleScales_v8 || !AppState.data.wordlePositions_v8) return;
         const ids = ['wrap-candidates', 'wrap-board', 'wrap-actions', 'wrap-keyboard', 'wrap-banner'];
         ids.forEach(id => {
             let el = document.getElementById(id);
@@ -399,9 +418,11 @@
     }
 
     function openScaleModal(id) {
-        currentScaleTarget = id; originalScale = AppState.data.wordleScales_v8[id] || 1;
+        currentScaleTarget = id; 
+        originalScale = (AppState.data && AppState.data.wordleScales_v8) ? (AppState.data.wordleScales_v8[id] || 1) : 1;
         const slider = document.getElementById('scale-slider');
-        slider.value = originalScale; document.getElementById('scale-value').innerText = Math.round(originalScale * 100) + '%';
+        slider.value = originalScale; 
+        document.getElementById('scale-value').innerText = Math.round(originalScale * 100) + '%';
         openModal('modal-scale');
     }
 
@@ -420,7 +441,8 @@
 
     function saveScale() {
         const val = parseFloat(document.getElementById('scale-slider').value);
-        AppState.data.wordleScales_v8[currentScaleTarget] = val; localStorage.setItem('db', JSON.stringify(AppState.data));
+        AppState.data.wordleScales_v8[currentScaleTarget] = val; 
+        try { localStorage.setItem('db', JSON.stringify(AppState.data)); } catch(e) {}
         updateMetrics(currentScaleTarget);
         closeModals();
     }
@@ -452,30 +474,35 @@
         if (e.type === 'touchstart') { const touch = e.touches[0]; dragStartX = touch.clientX; dragStartY = touch.clientY; } 
         else { e.preventDefault(); dragStartX = e.clientX; dragStartY = e.clientY; }
         
-        let pos = AppState.data.wordlePositions_v8[targetId] || {x: 0, y: 0};
+        let pos = (AppState.data && AppState.data.wordlePositions_v8) ? (AppState.data.wordlePositions_v8[targetId] || {x: 0, y: 0}) : {x: 0, y: 0};
         initialTranslateX = pos.x; initialTranslateY = pos.y;
         currentDragTarget.classList.remove('transition-transform', 'duration-200'); currentDragTarget.style.zIndex = 50;
         isDragging = true;
     }
 
-    window.addEventListener('mousemove', dragMove); window.addEventListener('touchmove', dragMove, {passive: false});
-    window.addEventListener('mouseup', endDrag); window.addEventListener('touchend', endDrag);
+    window.addEventListener('mousemove', dragMove); 
+    window.addEventListener('touchmove', dragMove, {passive: false});
+    window.addEventListener('mouseup', endDrag); 
+    window.addEventListener('touchend', endDrag);
 
     function dragMove(e) {
         if (!isDragging || !currentDragTarget) return;
         if (e.type === 'touchmove') e.preventDefault();
         
-        let clientX, clientY;
-        if (e.type === 'touchmove') { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; } 
-        else { clientX = e.clientX; clientY = e.clientY; }
+        let clientX = (e.type === 'touchmove') ? e.touches[0].clientX : e.clientX;
+        let clientY = (e.type === 'touchmove') ? e.touches[0].clientY : e.clientY;
         
-        let dx = clientX - dragStartX; let dy = clientY - dragStartY;
-        let newX = initialTranslateX + dx; let newY = initialTranslateY + dy;
+        let dx = clientX - dragStartX; 
+        let dy = clientY - dragStartY;
+        let newX = initialTranslateX + dx; 
+        let newY = initialTranslateY + dy;
         
-        const id = currentDragTarget.id; let s = AppState.data.wordleScales_v8[id] || 1;
+        const id = currentDragTarget.id; 
+        let s = (AppState.data && AppState.data.wordleScales_v8) ? (AppState.data.wordleScales_v8[id] || 1) : 1;
         
         currentDragTarget.style.transform = `translate(${newX}px, ${newY}px) scale(${s})`;
-        currentDragTarget.dataset.tempX = newX; currentDragTarget.dataset.tempY = newY;
+        currentDragTarget.dataset.tempX = newX; 
+        currentDragTarget.dataset.tempY = newY;
         
         let metricEl = currentDragTarget.querySelector('.metrics-display');
         if (metricEl) { metricEl.innerText = `x: ${Math.round(newX)} | y: ${Math.round(newY)} | scale: ${parseFloat(s).toFixed(2)}`; }
@@ -483,66 +510,126 @@
 
     function endDrag(e) {
         if (!isDragging || !currentDragTarget) return;
-        isDragging = false; const id = currentDragTarget.id;
-        if (currentDragTarget.dataset.tempX !== undefined) {
+        isDragging = false; 
+        const id = currentDragTarget.id;
+        if (currentDragTarget.dataset.tempX !== undefined && AppState.data && AppState.data.wordlePositions_v8) {
             AppState.data.wordlePositions_v8[id] = { x: parseFloat(currentDragTarget.dataset.tempX), y: parseFloat(currentDragTarget.dataset.tempY) };
-            localStorage.setItem('db', JSON.stringify(AppState.data));
+            try { localStorage.setItem('db', JSON.stringify(AppState.data)); } catch(err) {}
         }
-        currentDragTarget.classList.add('transition-transform', 'duration-200'); currentDragTarget.style.zIndex = ''; currentDragTarget = null;
+        currentDragTarget.classList.add('transition-transform', 'duration-200'); 
+        currentDragTarget.style.zIndex = ''; 
+        currentDragTarget = null;
     }
 
-    // Wordle Core Logic
-    let targetWord = ""; let currentRow = 0, currentCol = 0;
-    let boardState = Array(6).fill().map(() => Array(5).fill('')); let boardStatuses = Array(6).fill().map(() => Array(5).fill(''));
+    // Wordle Core Engine
+    let targetWord = ""; 
+    let currentRow = 0, currentCol = 0;
+    let boardState = Array(6).fill().map(() => Array(5).fill('')); 
+    let boardStatuses = Array(6).fill().map(() => Array(5).fill(''));
     let isGameOver = false, hintPenalty = 0, gameScore = 0, isBotRunning = false, botInterval = null;
     let keyStates = {}, bannedWords = []; 
     const keys = [ ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"], ["A", "S", "D", "F", "G", "H", "J", "K", "L"], ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "BACK"] ];
     
-    const confettiCanvas = document.getElementById('confettiCanvas'); const ctxConfetti = confettiCanvas.getContext('2d');
+    const confettiCanvas = document.getElementById('confettiCanvas'); 
+    const ctxConfetti = confettiCanvas.getContext('2d');
     let particles = [];
+    
     window.addEventListener('resize', () => { confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; });
-    confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight;
+    confettiCanvas.width = window.innerWidth; 
+    confettiCanvas.height = window.innerHeight;
 
     function triggerConfetti() {
-        particles = []; const colors = ['#10b981', '#06b6d4', '#f59e0b', '#ec4899', '#8b5cf6', '#38bdf8'];
+        particles = []; 
+        const colors = ['#10b981', '#06b6d4', '#f59e0b', '#ec4899', '#8b5cf6', '#38bdf8'];
         for (let i = 0; i < 110; i++) {
             particles.push({ x: confettiCanvas.width / 2, y: confettiCanvas.height / 2, vx: (Math.random() - 0.5) * 18, vy: (Math.random() - 0.75) * 18, color: colors[Math.floor(Math.random() * colors.length)], size: Math.random() * 8 + 4, rotation: Math.random() * 360, rotSpeed: (Math.random() - 0.5) * 12, opacity: 1 });
-        } requestAnimationFrame(updateConfetti);
+        } 
+        requestAnimationFrame(updateConfetti);
     }
 
     function updateConfetti() {
-        ctxConfetti.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); let alive = false;
-        particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.38; p.opacity -= 0.011; p.rotation += p.rotSpeed; if (p.opacity > 0) { alive = true; ctxConfetti.save(); ctxConfetti.translate(p.x, p.y); ctxConfetti.rotate((p.rotation * Math.PI) / 180); ctxConfetti.globalAlpha = Math.max(0, p.opacity); ctxConfetti.fillStyle = p.color; ctxConfetti.fillRect(-p.size / 2, -p.size / 2, p.size, p.size); ctxConfetti.restore(); } });
+        ctxConfetti.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); 
+        let alive = false;
+        particles.forEach(p => { 
+            p.x += p.vx; 
+            p.y += p.vy; 
+            p.vy += 0.38; 
+            p.opacity -= 0.011; 
+            p.rotation += p.rotSpeed; 
+            if (p.opacity > 0) { 
+                alive = true; 
+                ctxConfetti.save(); 
+                ctxConfetti.translate(p.x, p.y); 
+                ctxConfetti.rotate((p.rotation * Math.PI) / 180); 
+                ctxConfetti.globalAlpha = Math.max(0, p.opacity); 
+                ctxConfetti.fillStyle = p.color; 
+                ctxConfetti.fillRect(-p.size / 2, -p.size / 2, p.size, p.size); 
+                ctxConfetti.restore(); 
+            } 
+        });
         if (alive) requestAnimationFrame(updateConfetti);
     }
 
-    const boardEl = document.getElementById('board'); const messageBox = document.getElementById('messageBox');
+    const boardEl = document.getElementById('board'); 
+    const messageBox = document.getElementById('messageBox');
     
     function initGame(presetWord = null) {
-        targetWord = presetWord ? presetWord.toUpperCase() : DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)];
-        currentRow = 0; currentCol = 0; boardState = Array(6).fill().map(() => Array(5).fill('')); boardStatuses = Array(6).fill().map(() => Array(5).fill(''));
-        isGameOver = false; hintPenalty = 0; gameScore = 0; stopBot(); keyStates = {}; bannedWords = [];
-        document.getElementById('hintBtn').classList.remove('opacity-50', 'cursor-not-allowed');
-        closeModals(); const btn = document.getElementById('saveScoreBtn'); if(btn) { btn.disabled = false; btn.textContent = t('Save', 'Spara'); }
-        createBoardUI(); createKeyboardUI(); setMessage(""); updateButtons(); updateCandidateCounter();
+        targetWord = (presetWord ? presetWord : DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)] || "CRANE").toUpperCase();
+        currentRow = 0; 
+        currentCol = 0; 
+        boardState = Array(6).fill().map(() => Array(5).fill('')); 
+        boardStatuses = Array(6).fill().map(() => Array(5).fill(''));
+        isGameOver = false; 
+        hintPenalty = 0; 
+        gameScore = 0; 
+        stopBot(); 
+        keyStates = {}; 
+        bannedWords = [];
+        
+        const hintBtn = document.getElementById('hintBtn');
+        if (hintBtn) hintBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        
+        closeModals(); 
+        const btn = document.getElementById('saveScoreBtn'); 
+        if(btn) { btn.disabled = false; btn.textContent = t('Save', 'Spara'); }
+        
+        createBoardUI(); 
+        createKeyboardUI(); 
+        setMessage(""); 
+        updateButtons(); 
+        updateCandidateCounter();
     }
 
     function createBoardUI() {
+        if (!boardEl) return;
         boardEl.innerHTML = '';
         for (let r = 0; r < 6; r++) {
-            const rowEl = document.createElement('div'); rowEl.id = `row-${r}`; rowEl.className = 'grid grid-cols-5 gap-1.5 sm:gap-2';
-            for (let c = 0; c < 5; c++) { const tile = document.createElement('div'); tile.id = `tile-${r}-${c}`; tile.className = 'board-tile w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-white dark:bg-transparent border-2 border-slate-300 dark:border-slate-800 rounded-lg flex items-center justify-center text-2xl sm:text-3xl font-mono font-black uppercase text-slate-900 dark:text-white transition-all shadow-sm dark:shadow-none'; rowEl.appendChild(tile); }
+            const rowEl = document.createElement('div'); 
+            rowEl.id = `row-${r}`; 
+            rowEl.className = 'grid grid-cols-5 gap-1.5 sm:gap-2';
+            for (let c = 0; c < 5; c++) { 
+                const tile = document.createElement('div'); 
+                tile.id = `tile-${r}-${c}`; 
+                tile.className = 'board-tile w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-white dark:bg-transparent border-2 border-slate-300 dark:border-slate-800 rounded-lg flex items-center justify-center text-2xl sm:text-3xl font-mono font-black uppercase text-slate-900 dark:text-white transition-all shadow-sm dark:shadow-none'; 
+                rowEl.appendChild(tile); 
+            }
             boardEl.appendChild(rowEl);
         }
     }
 
     function createKeyboardUI() {
         ['row1', 'row2', 'row3'].forEach((rowId, index) => {
-            const rowEl = document.getElementById(rowId); rowEl.innerHTML = '';
+            const rowEl = document.getElementById(rowId); 
+            if (!rowEl) return;
+            rowEl.innerHTML = '';
             keys[index].forEach(key => {
-                const btn = document.createElement('button'); btn.id = `key-${key}`; const isSpecial = (key === 'ENTER' || key === 'BACK'); btn.textContent = key === 'BACK' ? '⌫' : (key === 'ENTER' ? 'ENTER' : key);
+                const btn = document.createElement('button'); 
+                btn.id = `key-${key}`; 
+                const isSpecial = (key === 'ENTER' || key === 'BACK'); 
+                btn.textContent = key === 'BACK' ? '⌫' : (key === 'ENTER' ? 'ENTER' : key);
                 btn.className = `h-12 sm:h-14 font-sans font-bold rounded-lg transition-colors flex items-center justify-center active:scale-95 text-sm sm:text-base shadow-sm dark:shadow-none ${isSpecial ? 'px-3 flex-[1.5] text-[11px] sm:text-xs bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600' : 'flex-1 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-transparent'}`;
-                btn.onclick = () => handleKeyPress(key); rowEl.appendChild(btn);
+                btn.onclick = () => handleKeyPress(key); 
+                rowEl.appendChild(btn);
             });
         });
     }
@@ -550,9 +637,18 @@
     function updateBoardUI() {
         for (let r = 0; r < 6; r++) {
             for (let c = 0; c < 5; c++) {
-                const tile = document.getElementById(`tile-${r}-${c}`); const char = boardState[r][c]; tile.textContent = char;
-                if (char !== '') { if (r === currentRow && !tile.classList.contains('tile-pop') && c === currentCol - 1) { tile.classList.add('tile-pop', 'border-slate-400', 'dark:border-slate-600'); setTimeout(() => tile.classList.remove('tile-pop'), 140); }
-                } else { tile.classList.remove('border-slate-400', 'dark:border-slate-600'); }
+                const tile = document.getElementById(`tile-${r}-${c}`); 
+                if (!tile) continue;
+                const char = boardState[r][c]; 
+                tile.textContent = char;
+                if (char !== '') { 
+                    if (r === currentRow && !tile.classList.contains('tile-pop') && c === currentCol - 1) { 
+                        tile.classList.add('tile-pop', 'border-slate-400', 'dark:border-slate-600'); 
+                        setTimeout(() => tile.classList.remove('tile-pop'), 140); 
+                    }
+                } else { 
+                    tile.classList.remove('border-slate-400', 'dark:border-slate-600'); 
+                }
             }
         }
     }
@@ -562,69 +658,137 @@
             const btn = document.getElementById(`key-${key}`);
             if (btn) {
                 btn.className = `h-12 sm:h-14 font-sans font-bold rounded-lg transition-colors flex items-center justify-center text-sm sm:text-base shadow-sm dark:shadow-none ${key.length > 1 ? 'px-3 flex-[1.5] text-xs' : 'flex-1 border border-slate-200 dark:border-transparent'}`;
-                if (keyStates[key] === 'correct') { btn.classList.add('bg-emerald-500', 'dark:bg-emerald-600', 'text-white', 'border-transparent'); } 
-                else if (keyStates[key] === 'present') { btn.classList.add('bg-amber-500', 'dark:bg-amber-600', 'text-white', 'border-transparent'); } 
-                else if (keyStates[key] === 'absent') { btn.classList.add('bg-slate-200', 'dark:bg-slate-900', 'text-slate-500', 'dark:text-slate-600', 'border-transparent'); }
+                if (keyStates[key] === 'correct') { 
+                    btn.classList.add('bg-emerald-500', 'dark:bg-emerald-600', 'text-white', 'border-transparent'); 
+                } else if (keyStates[key] === 'present') { 
+                    btn.classList.add('bg-amber-500', 'dark:bg-amber-600', 'text-white', 'border-transparent'); 
+                } else if (keyStates[key] === 'absent') { 
+                    btn.classList.add('bg-slate-200', 'dark:bg-slate-900', 'text-slate-500', 'dark:text-slate-600', 'border-transparent'); 
+                }
             }
         }
     }
 
     function handleKeyPress(key) {
         if (isGameOver || isBotRunning) return;
-        if (key === 'BACK') { if (currentCol > 0) { currentCol--; boardState[currentRow][currentCol] = ''; updateBoardUI(); setMessage(""); }
+        if (key === 'BACK') { 
+            if (currentCol > 0) { 
+                currentCol--; 
+                boardState[currentRow][currentCol] = ''; 
+                updateBoardUI(); 
+                setMessage(""); 
+            }
         } else if (key === 'ENTER') {
-            if (currentCol < 5) { triggerRowShake(currentRow); setMessage(t("Not enough letters!", "Inte tillräckligt med bokstäver!"), "text-rose-500 dark:text-rose-400"); return; }
+            if (currentCol < 5) { 
+                triggerRowShake(currentRow); 
+                setMessage(t("Not enough letters!", "Inte tillräckligt med bokstäver!"), "text-rose-500 dark:text-rose-400"); 
+                return; 
+            }
             submitCurrentRow();
         } else {
             if (currentCol < 5) {
-                boardState[currentRow][currentCol] = key; currentCol++; updateBoardUI();
+                boardState[currentRow][currentCol] = key.toUpperCase(); 
+                currentCol++; 
+                updateBoardUI();
                 if (currentCol === 5) {
                     const guess = boardState[currentRow].join('');
-                    if (!validWords.includes(guess)) setMessage(t("Not in dictionary!", "Finns inte i ordlistan!"), "text-rose-500 dark:text-rose-400");
-                    else setMessage(t("Press Enter to submit guess!", "Tryck Enter för att gissa!"), "text-emerald-500 dark:text-emerald-400");
+                    if (!validWords.includes(guess)) {
+                        setMessage(t("Not in dictionary!", "Finns inte i ordlistan!"), "text-rose-500 dark:text-rose-400");
+                    } else {
+                        setMessage(t("Press Enter to submit guess!", "Tryck Enter för att gissa!"), "text-emerald-500 dark:text-emerald-400");
+                    }
                 }
             }
         }
     }
 
-    function triggerRowShake(row) { const rowEl = document.getElementById(`row-${row}`); if (rowEl) { rowEl.classList.add('row-shake'); setTimeout(() => rowEl.classList.remove('row-shake'), 400); } }
+    function triggerRowShake(row) { 
+        const rowEl = document.getElementById(`row-${row}`); 
+        if (rowEl) { 
+            rowEl.classList.add('row-shake'); 
+            setTimeout(() => rowEl.classList.remove('row-shake'), 400); 
+        } 
+    }
 
     function requestHint() {
         if (isGameOver || isBotRunning) return;
-        const targetLetters = Array.from(new Set(targetWord.split(''))); const uncoveredLetters = targetLetters.filter(ch => keyStates[ch] !== 'correct' && keyStates[ch] !== 'present');
-        if (uncoveredLetters.length === 0) { setMessage(t("All letters uncovered!", "Alla bokstäver avslöjade!"), "text-rose-500 dark:text-rose-400"); return; }
-        const hintChar = uncoveredLetters[Math.floor(Math.random() * uncoveredLetters.length)]; keyStates[hintChar] = 'present'; updateKeyboardUI(); hintPenalty += 10;
+        const targetLetters = Array.from(new Set(targetWord.split(''))); 
+        const uncoveredLetters = targetLetters.filter(ch => keyStates[ch] !== 'correct' && keyStates[ch] !== 'present');
+        if (uncoveredLetters.length === 0) { 
+            setMessage(t("All letters uncovered!", "Alla bokstäver avslöjade!"), "text-rose-500 dark:text-rose-400"); 
+            return; 
+        }
+        const hintChar = uncoveredLetters[Math.floor(Math.random() * uncoveredLetters.length)]; 
+        keyStates[hintChar] = 'present'; 
+        updateKeyboardUI(); 
+        hintPenalty += 10;
         setMessage(`${t("💡 Hint:", "💡 Tips:")} ${hintChar}`, "text-amber-500 dark:text-amber-400");
     }
 
     function submitCurrentRow() {
         const guess = boardState[currentRow].join('');
-        if (!validWords.includes(guess)) { triggerRowShake(currentRow); setMessage(t("Not in dictionary!", "Finns inte i ordlistan!"), "text-rose-500 dark:text-rose-400"); return; }
+        if (!validWords.includes(guess)) { 
+            triggerRowShake(currentRow); 
+            setMessage(t("Not in dictionary!", "Finns inte i ordlistan!"), "text-rose-500 dark:text-rose-400"); 
+            return; 
+        }
         isBotRunning = true;
         revealRow(currentRow, guess, () => {
             isBotRunning = false;
-            if (guess === targetWord) endGame(true); else if (currentRow === 5) endGame(false);
-            else { currentRow++; currentCol = 0; setMessage(""); updateButtons(); updateCandidateCounter(); }
+            if (guess === targetWord) endGame(true); 
+            else if (currentRow === 5) endGame(false);
+            else { 
+                currentRow++; 
+                currentCol = 0; 
+                setMessage(""); 
+                updateButtons(); 
+                updateCandidateCounter(); 
+            }
         });
     }
 
     function revealRow(row, guess, callback) {
-        let targetArr = targetWord.split(''); let guessArr = guess.split(''); let statuses = Array(5).fill('absent');
-        for (let i = 0; i < 5; i++) { if (guessArr[i] === targetArr[i]) { statuses[i] = 'correct'; targetArr[i] = null; guessArr[i] = null; } }
-        for (let i = 0; i < 5; i++) { if (guessArr[i] !== null) { let index = targetArr.indexOf(guessArr[i]); if (index !== -1) { statuses[i] = 'present'; targetArr[index] = null; } } }
+        let targetArr = targetWord.split(''); 
+        let guessArr = guess.split(''); 
+        let statuses = Array(5).fill('absent');
+        
+        for (let i = 0; i < 5; i++) { 
+            if (guessArr[i] === targetArr[i]) { 
+                statuses[i] = 'correct'; 
+                targetArr[i] = null; 
+                guessArr[i] = null; 
+            } 
+        }
+        for (let i = 0; i < 5; i++) { 
+            if (guessArr[i] !== null) { 
+                let index = targetArr.indexOf(guessArr[i]); 
+                if (index !== -1) { 
+                    statuses[i] = 'present'; 
+                    targetArr[index] = null; 
+                } 
+            } 
+        }
         boardStatuses[row] = [...statuses];
 
         for (let i = 0; i < 5; i++) {
-            const tile = document.getElementById(`tile-${row}-${i}`); const letter = guess[i];
-            if (statuses[i] === 'correct') keyStates[letter] = 'correct'; else if (statuses[i] === 'present' && keyStates[letter] !== 'correct') keyStates[letter] = 'present'; else if (statuses[i] === 'absent' && !keyStates[letter]) keyStates[letter] = 'absent';
+            const tile = document.getElementById(`tile-${row}-${i}`); 
+            const letter = guess[i];
+            if (statuses[i] === 'correct') keyStates[letter] = 'correct'; 
+            else if (statuses[i] === 'present' && keyStates[letter] !== 'correct') keyStates[letter] = 'present'; 
+            else if (statuses[i] === 'absent' && !keyStates[letter]) keyStates[letter] = 'absent';
 
             setTimeout(() => {
-                tile.classList.add('tile-flip'); tile.classList.remove('border-slate-800', 'border-slate-300', 'dark:border-slate-600', 'border-slate-400', 'bg-white', 'dark:bg-transparent');
+                tile.classList.add('tile-flip'); 
+                tile.classList.remove('border-slate-800', 'border-slate-300', 'dark:border-slate-600', 'border-slate-400', 'bg-white', 'dark:bg-transparent');
                 setTimeout(() => {
                     tile.classList.remove('tile-flip');
-                    if (statuses[i] === 'correct') tile.className = 'board-tile w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-emerald-500 dark:bg-emerald-600 border-2 border-emerald-500 rounded-lg flex items-center justify-center text-2xl sm:text-3xl font-mono font-black uppercase text-white shadow-lg';
-                    else if (statuses[i] === 'present') tile.className = 'board-tile w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-amber-500 dark:bg-amber-600 border-2 border-amber-500 rounded-lg flex items-center justify-center text-2xl sm:text-3xl font-mono font-black uppercase text-white shadow-lg';
-                    else tile.className = 'board-tile w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-slate-100 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-lg flex items-center justify-center text-2xl sm:text-3xl font-mono font-black uppercase text-slate-400 dark:text-slate-500 shadow-inner';
+                    if (statuses[i] === 'correct') {
+                        tile.className = 'board-tile w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-emerald-500 dark:bg-emerald-600 border-2 border-emerald-500 rounded-lg flex items-center justify-center text-2xl sm:text-3xl font-mono font-black uppercase text-white shadow-lg';
+                    } else if (statuses[i] === 'present') {
+                        tile.className = 'board-tile w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-amber-500 dark:bg-amber-600 border-2 border-amber-500 rounded-lg flex items-center justify-center text-2xl sm:text-3xl font-mono font-black uppercase text-white shadow-lg';
+                    } else {
+                        tile.className = 'board-tile w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-slate-100 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-lg flex items-center justify-center text-2xl sm:text-3xl font-mono font-black uppercase text-slate-400 dark:text-slate-500 shadow-inner';
+                    }
                 }, 275);
             }, i * 180);
         }
@@ -635,17 +799,25 @@
         return validWords.filter(word => {
             if (bannedWords.includes(word)) return false;
             for (let r = 0; r < currentRow; r++) {
-                const gWord = boardState[r].join(''); const statuses = boardStatuses[r]; const wordCharCounts = {};
+                const gWord = boardState[r].join(''); 
+                const statuses = boardStatuses[r]; 
+                const wordCharCounts = {};
                 for (let i = 0; i < 5; i++) wordCharCounts[word[i]] = (wordCharCounts[word[i]] || 0) + 1;
-                for (let i = 0; i < 5; i++) { if (statuses[i] === 'correct' && word[i] !== gWord[i]) return false; else if ((statuses[i] === 'present' || statuses[i] === 'absent') && word[i] === gWord[i]) return false; }
+                for (let i = 0; i < 5; i++) { 
+                    if (statuses[i] === 'correct' && word[i] !== gWord[i]) return false; 
+                    else if ((statuses[i] === 'present' || statuses[i] === 'absent') && word[i] === gWord[i]) return false; 
+                }
                 const guessCharStats = {};
                 for (let i = 0; i < 5; i++) {
                     if (!guessCharStats[gWord[i]]) guessCharStats[gWord[i]] = { min: 0, exact: false };
-                    if (statuses[i] === 'correct' || statuses[i] === 'present') guessCharStats[gWord[i]].min += 1; else if (statuses[i] === 'absent') guessCharStats[gWord[i]].exact = true;
+                    if (statuses[i] === 'correct' || statuses[i] === 'present') guessCharStats[gWord[i]].min += 1; 
+                    else if (statuses[i] === 'absent') guessCharStats[gWord[i]].exact = true;
                 }
                 for (const char in guessCharStats) {
-                    const stat = guessCharStats[char]; const cCount = wordCharCounts[char] || 0;
-                    if (stat.exact && cCount !== stat.min) return false; if (!stat.exact && cCount < stat.min) return false;
+                    const stat = guessCharStats[char]; 
+                    const cCount = wordCharCounts[char] || 0;
+                    if (stat.exact && cCount !== stat.min) return false; 
+                    if (!stat.exact && cCount < stat.min) return false;
                 }
             }
             return true;
@@ -654,61 +826,144 @@
 
     function getBestBotGuess() {
         if (currentRow === 0) return "TRACE";
-        if (currentRow === 1) { let hitCount = 0; for (let i = 0; i < 5; i++) { if (boardStatuses[0][i] === 'correct' || boardStatuses[0][i] === 'present') { hitCount++; } } if (hitCount < 3 && boardState[0].join('') !== "LIONS") { return "LIONS"; } }
+        if (currentRow === 1) { 
+            let hitCount = 0; 
+            for (let i = 0; i < 5; i++) { 
+                if (boardStatuses[0][i] === 'correct' || boardStatuses[0][i] === 'present') { hitCount++; } 
+            } 
+            if (hitCount < 3 && boardState[0].join('') !== "LIONS") { return "LIONS"; } 
+        }
         const candidates = getFilteredCandidates();
         if (candidates.length === 0) return validWords[Math.floor(Math.random() * validWords.length)];
         if (candidates.length === 1) return candidates[0];
-        const letterFreq = {}; candidates.forEach(w => new Set(w.split('')).forEach(ch => letterFreq[ch] = (letterFreq[ch] || 0) + 1));
-        let bestWord = candidates[0]; let bestScore = -1;
-        candidates.forEach(word => { let score = 0; new Set(word.split('')).forEach(ch => score += letterFreq[ch] || 0); if (score > bestScore) { bestScore = score; bestWord = word; } });
+        const letterFreq = {}; 
+        candidates.forEach(w => new Set(w.split('')).forEach(ch => letterFreq[ch] = (letterFreq[ch] || 0) + 1));
+        let bestWord = candidates[0]; 
+        let bestScore = -1;
+        candidates.forEach(word => { 
+            let score = 0; 
+            new Set(word.split('')).forEach(ch => score += letterFreq[ch] || 0); 
+            if (score > bestScore) { bestScore = score; bestWord = word; } 
+        });
         return bestWord;
     }
 
-    function updateCandidateCounter() { const num = getFilteredCandidates().length; document.getElementById('candidateNumber').textContent = num; document.getElementById('candidateNumberMobile').textContent = num; }
+    function updateCandidateCounter() { 
+        const num = getFilteredCandidates().length; 
+        const c1 = document.getElementById('candidateNumber');
+        const c2 = document.getElementById('candidateNumberMobile');
+        if (c1) c1.textContent = num; 
+        if (c2) c2.textContent = num; 
+    }
 
     function solveNextRow() {
         if (isGameOver || isBotRunning) return;
-        isBotRunning = true; updateButtons(); setMessage(t("Bot calculating...", "Bot kalkylerar..."), "text-brand-600 dark:text-cyan-400");
-        setTimeout(() => { let chosenWord = getBestBotGuess(); for (let i = 0; i < 5; i++) boardState[currentRow][i] = chosenWord[i]; currentCol = 5; updateBoardUI(); setTimeout(() => submitCurrentRow(), 350); }, 500);
+        isBotRunning = true; 
+        updateButtons(); 
+        setMessage(t("Bot calculating...", "Bot kalkylerar..."), "text-brand-600 dark:text-cyan-400");
+        setTimeout(() => { 
+            let chosenWord = getBestBotGuess(); 
+            for (let i = 0; i < 5; i++) boardState[currentRow][i] = chosenWord[i]; 
+            currentCol = 5; 
+            updateBoardUI(); 
+            setTimeout(() => submitCurrentRow(), 350); 
+        }, 500);
     }
 
     function startBotAutoPlay(customTarget = null) {
-        closeModals(); initGame(customTarget); setMessage(t("Bot Auto-Playing...", "Bot Spelar..."), "text-brand-600 dark:text-cyan-400");
-        botInterval = setInterval(() => { if (isGameOver || currentRow > 5) { stopBot(); return; } if (!isBotRunning) solveNextRow(); }, 2000); solveNextRow(); updateButtons();
+        closeModals(); 
+        initGame(customTarget); 
+        setMessage(t("Bot Auto-Playing...", "Bot Spelar..."), "text-brand-600 dark:text-cyan-400");
+        botInterval = setInterval(() => { 
+            if (isGameOver || currentRow > 5) { stopBot(); return; } 
+            if (!isBotRunning) solveNextRow(); 
+        }, 2000); 
+        solveNextRow(); 
+        updateButtons();
     }
 
-    function stopBot() { if (botInterval) clearInterval(botInterval); botInterval = null; isBotRunning = false; updateButtons(); if (!isGameOver) setMessage(""); }
+    function stopBot() { 
+        if (botInterval) clearInterval(botInterval); 
+        botInterval = null; 
+        isBotRunning = false; 
+        updateButtons(); 
+        if (!isGameOver) setMessage(""); 
+    }
 
     function updateButtons() {
-        const solveBtn = document.getElementById('solveRowBtn'); const botBtn = document.getElementById('botPlayBtn'); const lblSolve = document.getElementById('lbl-solve'); const lblBot = document.getElementById('lbl-bot'); const botIcon = document.getElementById('botPlayIcon');
+        const solveBtn = document.getElementById('solveRowBtn'); 
+        const botBtn = document.getElementById('botPlayBtn'); 
+        const lblSolve = document.getElementById('lbl-solve'); 
+        const lblBot = document.getElementById('lbl-bot'); 
+        const botIcon = document.getElementById('botPlayIcon');
         const canSolve = (currentRow >= 1) && !isGameOver && !isBotRunning && (currentRow <= 5) && !botInterval;
-        if(solveBtn) { solveBtn.disabled = !canSolve; if(lblSolve) lblSolve.textContent = t('Solve Row', 'Lös Rad'); }
+        
+        if(solveBtn) { 
+            solveBtn.disabled = !canSolve; 
+            if(lblSolve) lblSolve.textContent = t('Solve Row', 'Lös Rad'); 
+        }
         if(botBtn) {
-            if (botInterval) { botBtn.disabled = false; botIcon.textContent = '⏹️'; lblBot.textContent = t('Stop Bot', 'Stoppa Bot'); botBtn.className = "flex-1 lg:flex-none lg:w-full lg:max-w-[200px] border border-transparent py-3.5 px-6 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 shadow-lg transition whitespace-nowrap"; } 
-            else { const canAuto = (currentRow === 0) && !isGameOver && !isBotRunning; botBtn.disabled = !canAuto; botIcon.textContent = '🤖'; lblBot.textContent = t('Bot Auto-Play', 'Bot Auto-Spel'); botBtn.className = "flex-1 lg:flex-none lg:w-full lg:max-w-[200px] border border-transparent py-3.5 px-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"; }
+            if (botInterval) { 
+                botBtn.disabled = false; 
+                botIcon.textContent = '⏹️'; 
+                lblBot.textContent = t('Stop Bot', 'Stoppa Bot'); 
+                botBtn.className = "flex-1 lg:flex-none lg:w-full lg:max-w-[200px] border border-transparent py-3.5 px-6 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 shadow-lg transition whitespace-nowrap"; 
+            } else { 
+                const canAuto = (currentRow === 0) && !isGameOver && !isBotRunning; 
+                botBtn.disabled = !canAuto; 
+                botIcon.textContent = '🤖'; 
+                lblBot.textContent = t('Bot Auto-Play', 'Bot Auto-Spel'); 
+                botBtn.className = "flex-1 lg:flex-none lg:w-full lg:max-w-[200px] border border-transparent py-3.5 px-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"; 
+            }
         }
     }
 
-    function setMessage(msg, colorClass = "text-brand-600 dark:text-cyan-400") { if (messageBox) { messageBox.textContent = msg; messageBox.className = `text-sm font-semibold text-center mt-6 min-h-[24px] transition-opacity ${colorClass} ${msg ? 'opacity-100' : 'opacity-0'}`; } }
+    function setMessage(msg, colorClass = "text-brand-600 dark:text-cyan-400") { 
+        if (messageBox) { 
+            messageBox.textContent = msg; 
+            messageBox.className = `text-sm font-semibold text-center mt-6 min-h-[24px] transition-opacity ${colorClass} ${msg ? 'opacity-100' : 'opacity-0'}`; 
+        } 
+    }
 
-    function calculateScore(won, guessesUsed) { return won ? Math.max(5, (7 - guessesUsed) * 10 - hintPenalty) : 0; }
+    function calculateScore(won, guessesUsed) { 
+        return won ? Math.max(5, (7 - guessesUsed) * 10 - hintPenalty) : 0; 
+    }
 
     function endGame(won) {
-        isGameOver = true; stopBot(); updateButtons(); const guessesUsed = currentRow + 1; gameScore = calculateScore(won, guessesUsed);
-        if (won) { triggerConfetti(); for (let c = 0; c < 5; c++) { const tile = document.getElementById(`tile-${currentRow}-${c}`); if (tile) setTimeout(() => tile.classList.add('tile-bounce'), c * 80); } }
+        isGameOver = true; 
+        stopBot(); 
+        updateButtons(); 
+        const guessesUsed = currentRow + 1; 
+        gameScore = calculateScore(won, guessesUsed);
+        if (won) { 
+            triggerConfetti(); 
+            for (let c = 0; c < 5; c++) { 
+                const tile = document.getElementById(`tile-${currentRow}-${c}`); 
+                if (tile) setTimeout(() => tile.classList.add('tile-bounce'), c * 80); 
+            } 
+        }
         setTimeout(() => {
             document.getElementById('modalIcon').textContent = won ? "🎉" : "😢"; 
             document.getElementById('modalTitle').textContent = won ? t("Brilliant! Solved!", "Strålande! Löst!") : t("Game Over", "Spelet Över");
-            document.getElementById('targetWordDisplay').textContent = targetWord; document.getElementById('modalGuessesCount').textContent = won ? `${guessesUsed} / 6` : 'X / 6'; document.getElementById('modalPointsEarned').textContent = `${gameScore} pts`;
-            if (won) document.getElementById('leaderboardSaveSection').classList.remove('hidden'); else document.getElementById('leaderboardSaveSection').classList.add('hidden');
+            document.getElementById('targetWordDisplay').textContent = targetWord; 
+            document.getElementById('modalGuessesCount').textContent = won ? `${guessesUsed} / 6` : 'X / 6'; 
+            document.getElementById('modalPointsEarned').textContent = `${gameScore} pts`;
+            if (won) document.getElementById('leaderboardSaveSection').classList.remove('hidden'); 
+            else document.getElementById('leaderboardSaveSection').classList.add('hidden');
             openModal('modalOverlay');
         }, 1400);
     }
 
     function renderLeaderboard() {
-        const rowsContainer = document.getElementById('leaderboardRows'); let list = [];
-        try { list = JSON.parse(localStorage.getItem('wm_leaderboard')) || [{ name: "MatrixBot AI", wins: 99, points: 590 }]; } catch (e) { list = []; }
-        list.sort((a, b) => b.points - a.points); rowsContainer.innerHTML = list.length === 0 ? `<div class="text-slate-500 py-3 text-center text-xs">${t("No records.", "Inga poster.")}</div>` : '';
+        const rowsContainer = document.getElementById('leaderboardRows'); 
+        let list = [];
+        try { 
+            list = JSON.parse(localStorage.getItem('wm_leaderboard')) || [{ name: "MatrixBot AI", wins: 99, points: 590 }]; 
+        } catch (e) { 
+            list = []; 
+        }
+        list.sort((a, b) => b.points - a.points); 
+        rowsContainer.innerHTML = list.length === 0 ? `<div class="text-slate-500 py-3 text-center text-xs">${t("No records.", "Inga poster.")}</div>` : '';
         list.slice(0, 15).forEach((entry, idx) => {
             const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
             rowsContainer.innerHTML += `<div class="grid grid-cols-12 items-center p-2 rounded-xl ${idx < 3 ? 'bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20' : ''} text-slate-800 dark:text-slate-200"><span class="col-span-2 font-black ${idx === 0 ? 'text-amber-600 dark:text-amber-500' : ''}">${medal}</span><span class="col-span-5 font-bold truncate">${entry.name}</span><span class="col-span-2 text-center text-brand-600 dark:text-cyan-400 font-mono">${entry.wins}</span><span class="col-span-3 text-right text-emerald-600 dark:text-emerald-400 font-mono font-bold">${entry.points}</span></div>`;
@@ -716,30 +971,81 @@
     }
 
     function submitScore() {
-        const nameInput = document.getElementById('playerNameInput'); const saveBtn = document.getElementById('saveScoreBtn'); const name = nameInput.value.trim() || 'Anonymous'; saveBtn.disabled = true; saveBtn.textContent = t('Saving...', 'Sparar...');
+        const nameInput = document.getElementById('playerNameInput'); 
+        const saveBtn = document.getElementById('saveScoreBtn'); 
+        const name = nameInput.value.trim() || 'Anonymous'; 
+        saveBtn.disabled = true; 
+        saveBtn.textContent = t('Saving...', 'Sparar...');
         let list = JSON.parse(localStorage.getItem('wm_leaderboard')) || [{ name: "MatrixBot AI", wins: 99, points: 590 }];
-        const existing = list.find(item => item.name.toLowerCase() === name.toLowerCase()); if (existing) { existing.wins++; existing.points += gameScore; } else list.push({ name, wins: 1, points: gameScore });
-        localStorage.setItem('wm_leaderboard', JSON.stringify(list)); setTimeout(() => { saveBtn.textContent = t('Saved', 'Sparad'); }, 300);
+        const existing = list.find(item => item.name.toLowerCase() === name.toLowerCase()); 
+        if (existing) { 
+            existing.wins++; 
+            existing.points += gameScore; 
+        } else {
+            list.push({ name, wins: 1, points: gameScore });
+        }
+        try { localStorage.setItem('wm_leaderboard', JSON.stringify(list)); } catch(e) {}
+        setTimeout(() => { saveBtn.textContent = t('Saved', 'Sparad'); }, 300);
     }
 
     document.getElementById('solveRowBtn').onclick = solveNextRow;
     document.getElementById('botPlayBtn').onclick = () => { if(isBotRunning) stopBot(); else openModal('botConfigModal'); };
     document.getElementById('headerResetBtn').onclick = () => { if(isBotRunning) stopBot(); if((currentRow > 0 || currentCol > 0) && !isGameOver) openModal('confirmResetModal'); else initGame(); };
-    document.getElementById('cancelResetBtn').onclick = closeModals; document.getElementById('confirmResetBtn').onclick = () => { closeModals(); initGame(); };
-    document.getElementById('hintBtn').onclick = requestHint; document.getElementById('leaderboardBtn').onclick = () => { openModal('leaderboardModal'); renderLeaderboard(); };
-    document.getElementById('closeLeaderboardBtn').onclick = closeModals; document.getElementById('clearLeaderboardBtn').onclick = () => { localStorage.removeItem('wm_leaderboard'); renderLeaderboard(); };
+    document.getElementById('cancelResetBtn').onclick = closeModals; 
+    document.getElementById('confirmResetBtn').onclick = () => { closeModals(); initGame(); };
+    document.getElementById('hintBtn').onclick = requestHint; 
+    document.getElementById('leaderboardBtn').onclick = () => { openModal('leaderboardModal'); renderLeaderboard(); };
+    document.getElementById('closeLeaderboardBtn').onclick = closeModals; 
+    document.getElementById('clearLeaderboardBtn').onclick = () => { localStorage.removeItem('wm_leaderboard'); renderLeaderboard(); };
     document.getElementById('modalViewLeaderboard').onclick = () => { closeModals(); openModal('leaderboardModal'); renderLeaderboard(); };
-    document.getElementById('modalRestart').onclick = () => initGame(); document.getElementById('saveScoreBtn').onclick = submitScore;
-    document.getElementById('closeBotConfigBtn').onclick = closeModals; document.getElementById('playRandomBtn').onclick = () => startBotAutoPlay();
+    document.getElementById('modalRestart').onclick = () => initGame(); 
+    document.getElementById('saveScoreBtn').onclick = submitScore;
+    document.getElementById('closeBotConfigBtn').onclick = closeModals; 
+    document.getElementById('playRandomBtn').onclick = () => startBotAutoPlay();
     
-    const customWordInput = document.getElementById('customWordInput'); const playCustomBtn = document.getElementById('playCustomBtn');
-    const customWordWarning = document.getElementById('customWordWarning'); const customWordError = document.getElementById('customWordError');
+    const customWordInput = document.getElementById('customWordInput'); 
+    const playCustomBtn = document.getElementById('playCustomBtn');
+    const customWordWarning = document.getElementById('customWordWarning'); 
+    const customWordError = document.getElementById('customWordError');
     
-    customWordInput.addEventListener('input', () => { customWordError.classList.remove('opacity-100'); playCustomBtn.classList.remove('hidden'); customWordWarning.classList.add('hidden'); customWordWarning.classList.remove('flex'); });
+    customWordInput.addEventListener('input', () => { 
+        customWordError.classList.remove('opacity-100'); 
+        playCustomBtn.classList.remove('hidden'); 
+        customWordWarning.classList.add('hidden'); 
+        customWordWarning.classList.remove('flex'); 
+    });
     let pendingCustomWord = "";
-    playCustomBtn.onclick = () => { let val = customWordInput.value.toUpperCase().trim(); if (val.length !== 5 || !/^[A-Z]{5}$/.test(val)) { customWordError.classList.add('opacity-100'); return; } if (validWords.includes(val)) { pendingCustomWord = val; playCustomBtn.classList.add('hidden'); customWordWarning.classList.remove('hidden'); customWordWarning.classList.add('flex'); } else { validWords.push(val); startBotAutoPlay(val); } };
-    document.getElementById('proceedCustomBtn').onclick = () => startBotAutoPlay(pendingCustomWord); document.getElementById('changeCustomBtn').onclick = () => { customWordInput.value = ""; customWordInput.focus(); playCustomBtn.classList.remove('hidden'); customWordWarning.classList.add('hidden'); customWordWarning.classList.remove('flex'); };
+    playCustomBtn.onclick = () => { 
+        let val = customWordInput.value.toUpperCase().trim(); 
+        if (val.length !== 5 || !/^[A-Z]{5}$/.test(val)) { 
+            customWordError.classList.add('opacity-100'); 
+            return; 
+        } 
+        if (validWords.includes(val)) { 
+            pendingCustomWord = val; 
+            playCustomBtn.classList.add('hidden'); 
+            customWordWarning.classList.remove('hidden'); 
+            customWordWarning.classList.add('flex'); 
+        } else { 
+            validWords.push(val); 
+            startBotAutoPlay(val); 
+        } 
+    };
+    document.getElementById('proceedCustomBtn').onclick = () => startBotAutoPlay(pendingCustomWord); 
+    document.getElementById('changeCustomBtn').onclick = () => { 
+        customWordInput.value = ""; 
+        customWordInput.focus(); 
+        playCustomBtn.classList.remove('hidden'); 
+        customWordWarning.classList.add('hidden'); 
+        customWordWarning.classList.remove('flex'); 
+    };
 
-    window.addEventListener('keydown', (e) => { if (isGameOver || isBotRunning) return; if (document.activeElement.tagName === 'INPUT') return; if (e.key === 'Enter') handleKeyPress('ENTER'); else if (e.key === 'Backspace') handleKeyPress('BACK'); else if (/^[A-Za-z]$/.test(e.key)) handleKeyPress(e.key.toUpperCase()); });
+    window.addEventListener('keydown', (e) => { 
+        if (isGameOver || isBotRunning) return; 
+        if (document.activeElement.tagName === 'INPUT') return; 
+        if (e.key === 'Enter') handleKeyPress('ENTER'); 
+        else if (e.key === 'Backspace') handleKeyPress('BACK'); 
+        else if (/^[A-Za-z]$/.test(e.key)) handleKeyPress(e.key.toUpperCase()); 
+    });
 </script>
 {% endblock %}
