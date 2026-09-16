@@ -22,6 +22,8 @@ from routers.wordle import router as wordle_router
 
 app = FastAPI(title="Portfolio SPA Architecture")
 
+# Ensure static directory exists to prevent startup crash
+os.makedirs("static", exist_ok=True)
 # Mount the static directory so images like rfr_1.png load correctly
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

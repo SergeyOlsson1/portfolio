@@ -19,12 +19,35 @@ else:
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DB_PATH = DATA_DIR / "layout.db"
+REPO_LAYOUT_PATH = BASE_DIR / "data" / "layout.db"
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 class LayoutPayload(BaseModel):
     app_id: str
     data: str
+
+def init_db():
+    with sqlite3.connect(DB_PATH) as conn:
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS layouts (app_id TEXT PRIMARY KEY, layout_data TEXT)''')
+        conn.commit()
+
+        # Migrate layout state if persistent database has no saved records
+        if REPO_LAYOUT_PATH.exists() and REPO_LAYOUT_PATH != DB_PATH:
+            with sqlite3.connect(REPO_LAYOUT_PATH) as repo_conn:
+                repo_c = repo_conn.cursor()
+                try:
+                    c.execute('SELECT COUNT(*) FROM layouts')
+                    if c.fetchone()[0] == 0:
+                        repo_c.execute('SELECT app_id, layout_data FROM layouts')
+                        rows = repo_c.fetchall()
+                        c.executemany('INSERT OR IGNORE INTO layouts (app_id, layout_data) VALUES (?, ?)', rows)
+                        conn.commit()
+                except sqlite3.OperationalError:
+                    pass
+
+init_db()
 
 def parse_words_file(*filenames: str) -> list[str]:
     """Finds and parses word lists from repo data or persistent Azure storage."""

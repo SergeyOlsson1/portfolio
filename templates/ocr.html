@@ -28,6 +28,10 @@
     .text-gradient {
         background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-image: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
     }
+    @keyframes progress-stripes {
+        from { background-position: 1rem 0; }
+        to { background-position: 0 0; }
+    }
 </style>
 {% endblock %}
 
@@ -110,6 +114,18 @@
             </div>
         </div>
 
+        <div id="loading-container" class="hidden w-full flex-col gap-2 mb-1">
+            <div class="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
+                <span id="loading-status-text">Laddar AI-modeller...</span>
+                <span id="loading-progress-text">0%</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                <div id="loading-progress-bar" class="bg-brand-600 h-2.5 rounded-full transition-all duration-300 relative" style="width: 0%">
+                    <div class="absolute inset-0 bg-white/20" style="background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent); background-size: 1rem 1rem; animation: progress-stripes 1s linear infinite;"></div>
+                </div>
+            </div>
+        </div>
+
         <button type="button" id="btn-recognize" class="w-full min-h-[56px] mt-auto flex items-center justify-center gap-2 border border-transparent rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-lg font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all">
             <span class="btn-icon">🔍</span> <span id="btn-recognize-text">Tolka tecken</span>
         </button>
@@ -125,6 +141,7 @@
     const brushSize = 16;
     let attachedImageBase64 = null;
     let currentTopPrediction = '';
+    let isPollingStatus = false;
 
     const canvas = document.getElementById('paint-canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -268,6 +285,28 @@
         return canvas.toDataURL() === blank.toDataURL();
     }
 
+    async function pollModelStatus() {
+        if (!isPollingStatus) return;
+        try {
+            const res = await fetch('/api/ocr/status');
+            const data = await res.json();
+            
+            document.getElementById('loading-progress-bar').style.width = data.progress + '%';
+            document.getElementById('loading-progress-text').textContent = data.progress + '%';
+            
+            const lang = AppState.lang === 'sv' ? 'sv' : 'en';
+            if (data.status && data.status[lang]) {
+                document.getElementById('loading-status-text').textContent = data.status[lang];
+            }
+            
+            if (!data.initialized && isPollingStatus) {
+                setTimeout(pollModelStatus, 300);
+            }
+        } catch (e) {
+            if (isPollingStatus) setTimeout(pollModelStatus, 1000);
+        }
+    }
+
     document.getElementById('btn-recognize').addEventListener('click', async () => {
         const langKey = AppState.lang === 'sv' ? 'SWE' : 'ENG';
         const t = TRANSLATIONS[langKey];
@@ -280,6 +319,14 @@
         btn.classList.add('opacity-80', 'pointer-events-none');
         btn.innerHTML = `<span class="btn-icon">⏳</span> <span>${langKey === 'SWE' ? 'Tolkar...' : 'Analyzing...'}</span>`;
 
+        document.getElementById('loading-container').classList.remove('hidden');
+        document.getElementById('loading-container').classList.add('flex');
+        document.getElementById('loading-progress-bar').style.width = '0%';
+        document.getElementById('loading-progress-text').textContent = '0%';
+        
+        isPollingStatus = true;
+        pollModelStatus();
+
         try {
             const res = await fetch('/api/predict', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -291,6 +338,10 @@
         } catch (err) {
             triggerButtonError("Nätverksfel"); resetResultState();
         } finally {
+            isPollingStatus = false;
+            document.getElementById('loading-container').classList.add('hidden');
+            document.getElementById('loading-container').classList.remove('flex');
+            
             btn.classList.remove('opacity-80', 'pointer-events-none');
             btn.innerHTML = `<span class="btn-icon">🔍</span> <span id="btn-recognize-text">${t.btn_recognize}</span>`;
         }

@@ -4,10 +4,10 @@ from pydantic import BaseModel
 from PIL import Image
 from io import BytesIO
 from pathlib import Path
-from tensorflow.keras.models import load_model
 from scipy.ndimage import label
 import base64
 import numpy as np
+import threading
 
 router = APIRouter()
 
@@ -23,18 +23,55 @@ TARGET_MODELS = [
     "swe_chars_model.keras",
 ]
 
-if MODELS_DIR.exists() and MODELS_DIR.is_dir():
-    for model_name in TARGET_MODELS:
-        model_path = MODELS_DIR / model_name
-        if model_path.exists() and model_path.is_file():
-            try:
-                model = load_model(model_path)
-                loaded_models[model_name] = model
-                model.predict(np.zeros((1, 28, 28, 1)), verbose=0)
-            except Exception:
-                pass
-
 SWE_MAPPING = {0: 'Å', 1: 'Ä', 2: 'Ö', 3: 'å', 4: 'ä', 5: 'ö', 6: 'null'}
+
+# --- Loading State Variables ---
+models_initialized = False
+model_load_progress = 0
+model_load_status = {"sv": "Väntar...", "en": "Waiting..."}
+model_lock = threading.Lock()
+
+def init_models():
+    global models_initialized, model_load_progress, model_load_status
+    
+    with model_lock:
+        if models_initialized:
+            return
+            
+        model_load_progress = 5
+        model_load_status = {"sv": "Initierar AI-motor...", "en": "Initializing AI engine..."}
+        
+        try:
+            from tensorflow.keras.models import load_model
+            
+            if MODELS_DIR.exists() and MODELS_DIR.is_dir():
+                total_models = len(TARGET_MODELS)
+                for i, model_name in enumerate(TARGET_MODELS):
+                    # Progress calculation (starts at 10, tops at 90 during iteration)
+                    model_load_progress = 10 + int(80 * (i / total_models))
+                    model_load_status = {
+                        "sv": f"Laddar modell {i+1} av {total_models}...", 
+                        "en": f"Loading model {i+1} of {total_models}..."
+                    }
+                    
+                    model_path = MODELS_DIR / model_name
+                    if model_path.exists() and model_path.is_file():
+                        try:
+                            model = load_model(model_path)
+                            loaded_models[model_name] = model
+                            # Warm up the model to prevent delay on first actual prediction
+                            model.predict(np.zeros((1, 28, 28, 1)), verbose=0)
+                        except Exception:
+                            pass
+                            
+                model_load_progress = 95
+                model_load_status = {"sv": "Slutför inställningar...", "en": "Finalizing setup..."}
+        except ImportError:
+            pass
+            
+        models_initialized = True
+        model_load_progress = 100
+        model_load_status = {"sv": "Klar", "en": "Ready"}
 
 def emnist_idx_to_char(i: int) -> str:
     if i <= 9: return str(i)
@@ -112,8 +149,19 @@ async def serve_ocr(request: Request):
         context={"page_title": "Teckenigenkänning / AI OCR", "back_url": "/"}
     )
 
+@router.get("/api/ocr/status")
+async def get_ocr_status():
+    """Returns the current loading progress of the AI models. Runs on the main event loop."""
+    return {
+        "initialized": models_initialized,
+        "progress": model_load_progress,
+        "status": model_load_status
+    }
+
 @router.post("/api/predict")
-async def predict_character(req: PredictRequest):
+def predict_character(req: PredictRequest):
+    init_models()
+    
     if not req.image:
         return {"status": "error", "message": "Ingen bild mottogs / No image provided."}
 
@@ -121,7 +169,17 @@ async def predict_character(req: PredictRequest):
         raw_b64 = req.image
         if "," in raw_b64: raw_b64 = raw_b64.split(",", 1)[1]
         img_bytes = base64.b64decode(raw_b64)
-        img = Image.open(BytesIO(img_bytes)).convert("L")
+        
+        # Address transparency issue: composite transparent PNGs onto white background
+        img = Image.open(BytesIO(img_bytes))
+        if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+            alpha = img.convert('RGBA').split()[-1]
+            bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
+            bg.paste(img, mask=alpha)
+            img = bg.convert("L")
+        else:
+            img = img.convert("L")
+            
     except Exception as e:
         return {"status": "error", "message": f"Kunde inte tolka bilden: {e}"}
 
