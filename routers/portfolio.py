@@ -69,10 +69,26 @@ init_db()
 
 @router.get("/")
 async def serve_portfolio(request: Request):
+    # Fetch data directly from the DB before rendering the page
+    initial_data = "{}"
+    try:
+        with sqlite3.connect(AUTH_DB_PATH) as conn:
+            c = conn.cursor()
+            c.execute('SELECT state_data FROM portfolio_state WHERE id = 1')
+            row = c.fetchone()
+            if row and row[0]:
+                initial_data = row[0]
+    except Exception:
+        pass
+
     return templates.TemplateResponse(
         request=request, 
         name="portfolio.html", 
-        context={"page_title": "Portfolio SPA", "back_url": "/"}
+        context={
+            "page_title": "Portfolio SPA", 
+            "back_url": "/",
+            "initial_data": initial_data # Inject directly into Jinja
+        }
     )
 
 @router.post("/api/login")

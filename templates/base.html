@@ -104,6 +104,8 @@
 
     <!-- Global State Initialization -->
     <script>
+        const INJECTED_DATA = {{ initial_data | default('null') | safe }};
+        
         const GLOBAL_DEFAULT = {
             siteTitle: "SPA Portfolio",
             footer_copy_sv: "© 2026 John Doe. Alla rättigheter förbehållna.",
@@ -119,10 +121,20 @@
         };
 
         async function initGlobalData() {
+            // FAST PATH: Utilize injected data instantly
+            if (INJECTED_DATA && typeof INJECTED_DATA === 'object' && Object.keys(INJECTED_DATA).length > 0) {
+                let db = INJECTED_DATA;
+                for (let k in GLOBAL_DEFAULT) {
+                    if (db[k] === undefined) db[k] = GLOBAL_DEFAULT[k];
+                }
+                AppState.data = db;
+                try { localStorage.setItem('cached_portfolio_data', JSON.stringify(db)); } catch(e) {}
+                return;
+            }
+
+            // SLOW PATH: Fallback
             let cached = null;
-            try {
-                cached = JSON.parse(localStorage.getItem('cached_portfolio_data'));
-            } catch(e) {}
+            try { cached = JSON.parse(localStorage.getItem('cached_portfolio_data')); } catch(e) {}
 
             try {
                 const res = await fetch('/api/portfolio_data');
@@ -130,9 +142,7 @@
                 let db = {};
                 if (result.status === 'ok' && result.data) {
                     db = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
-                    try {
-                        localStorage.setItem('cached_portfolio_data', JSON.stringify(db));
-                    } catch(storageErr) {}
+                    try { localStorage.setItem('cached_portfolio_data', JSON.stringify(db)); } catch(storageErr) {}
                 } else if (cached) {
                     db = cached;
                 }
