@@ -32,6 +32,12 @@
         from { background-position: 1rem 0; }
         to { background-position: 0 0; }
     }
+    /* Input lock while the AI is recognizing */
+    .input-locked #paint-canvas { cursor: not-allowed; }
+    .input-locked .lockable { opacity: 0.5; pointer-events: none; cursor: not-allowed; }
+    #canvas-lock-overlay { transition: opacity 0.2s ease-in-out; }
+    @keyframes lock-spin { to { transform: rotate(360deg); } }
+    .lock-spinner { animation: lock-spin 0.9s linear infinite; }
 </style>
 {% endblock %}
 
@@ -45,17 +51,21 @@
 </header>
 
 <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6 sm:p-10 shadow-glass dark:shadow-glass-dark border border-white/40 dark:border-slate-700/50 transition-colors duration-500 grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
-    <section class="flex flex-col gap-5 h-full">
-        <div class="flex gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/50">
+    <section id="input-section" class="flex flex-col gap-5 h-full">
+        <div class="lockable flex gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/50">
             <button type="button" class="tab-btn active flex-1 flex justify-center gap-2 items-center py-2.5 rounded-lg text-sm font-semibold text-slate-500 dark:text-slate-400 border border-transparent cursor-pointer" id="tab-draw" data-mode="draw">✏️ <span id="tab-draw-text">Rita</span></button>
             <button type="button" class="tab-btn flex-1 flex justify-center gap-2 items-center py-2.5 rounded-lg text-sm font-semibold text-slate-500 dark:text-slate-400 border border-transparent cursor-pointer" id="tab-image" data-mode="image">🖼️ <span id="tab-image-text">Bild</span></button>
         </div>
 
         <div id="draw-container" class="flex flex-col items-center gap-4 w-full h-full">
-            <div class="w-[320px] h-[320px] rounded-2xl overflow-hidden bg-black border border-slate-200 dark:border-slate-700 shadow-inner flex justify-center items-center cursor-crosshair shrink-0">
+            <div class="relative w-[320px] h-[320px] rounded-2xl overflow-hidden bg-black border border-slate-200 dark:border-slate-700 shadow-inner flex justify-center items-center cursor-crosshair shrink-0">
                 <canvas id="paint-canvas" width="320" height="320" class="block touch-none"></canvas>
+                <div id="canvas-lock-overlay" class="absolute inset-0 hidden flex-col items-center justify-center gap-3 bg-slate-900/40 backdrop-blur-[1px] opacity-0 cursor-not-allowed select-none" aria-hidden="true">
+                    <div class="w-10 h-10 rounded-full border-4 border-white/30 border-t-white lock-spinner"></div>
+                    <span id="canvas-lock-text" class="text-sm font-bold text-white drop-shadow">🔒 Tolkar...</span>
+                </div>
             </div>
-            <div class="flex justify-between gap-2 w-full max-w-[320px] p-1.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+            <div class="lockable flex justify-between gap-2 w-full max-w-[320px] p-1.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
                 <button type="button" id="tool-brush" class="tool-btn active flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 border border-transparent transition-colors hover:bg-slate-200 dark:hover:bg-slate-800">🖌️ <span id="tool-brush-text">Pensel</span></button>
                 <button type="button" id="tool-eraser" class="tool-btn flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 border border-transparent transition-colors hover:bg-slate-200 dark:hover:bg-slate-800">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -69,7 +79,7 @@
         </div>
 
         <div id="image-container" class="hidden flex-col items-center gap-4 w-full h-full">
-            <div id="image-upload-wrapper" class="flex flex-col items-center gap-3 w-full max-w-[320px]">
+            <div id="image-upload-wrapper" class="lockable flex flex-col items-center gap-3 w-full max-w-[320px]">
                 <div id="drop-zone" class="w-full min-h-[260px] border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-slate-800/50 rounded-2xl bg-slate-50 dark:bg-slate-900/50 flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all">
                     <input type="file" id="file-input" accept="image/*" class="hidden">
                     <span class="text-4xl mb-3 block">📁</span>
@@ -83,7 +93,7 @@
                 <div class="w-[320px] h-[320px] rounded-2xl overflow-hidden bg-black border border-slate-200 dark:border-slate-700 shadow-inner flex justify-center items-center shrink-0">
                     <img id="source-image" src="" draggable="false" class="max-w-full max-h-[300px] object-contain">
                 </div>
-                <div class="w-full p-1.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                <div class="lockable w-full p-1.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
                     <button type="button" id="btn-new-image" class="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition">🔄 <span id="btn-new-image-text">Byt bild</span></button>
                 </div>
             </div>
@@ -142,6 +152,7 @@
     let attachedImageBase64 = null;
     let currentTopPrediction = '';
     let isPollingStatus = false;
+    let isInputLocked = false; // true while the AI is recognizing a character
 
     const canvas = document.getElementById('paint-canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -156,8 +167,8 @@
     }
 
     const TRANSLATIONS = {
-        SWE: { app_title: "Teckenigenkänning", app_subtitle: "Rita eller klistra in en bild för att tolka tecknet med AI", tab_draw: "Rita", tab_image: "Bild", tool_brush: "Pensel", tool_eraser: "Sudd", btn_undo: "Ångra", btn_clear: "Rensa", upload_prompt: "Klicka eller dra bild hit", upload_hint: "eller klistra in med Ctrl+V", btn_paste: "Klistra in från urklipp", btn_new_image: "Byt bild", result_heading: "⚡ AI-tolkning", btn_recognize: "Tolka tecken", empty_title: "Redo för tolkning", empty_desc: "Rita ett tecken till vänster och tryck på <strong>Tolka tecken</strong>.", hero_tag: "Bästa träff", copy_hint: "📋 Klicka för att kopiera", alt_title: "Andra förslag:", btn_err_empty: "Mata in tecken först!" },
-        ENG: { app_title: "Character Recognition", app_subtitle: "Draw or paste an image to recognize the character with AI", tab_draw: "Draw", tab_image: "Image", tool_brush: "Brush", tool_eraser: "Eraser", btn_undo: "Undo", btn_clear: "Clear", upload_prompt: "Click or drag image here", upload_hint: "or paste with Ctrl+V", btn_paste: "Paste from Clipboard", btn_new_image: "Change image", result_heading: "⚡ AI Recognition", btn_recognize: "Recognize Character", empty_title: "Ready to recognize", empty_desc: "Draw a character on the left and click <strong>Recognize Character</strong>.", hero_tag: "Best Match", copy_hint: "📋 Click to copy", alt_title: "Other candidates:", btn_err_empty: "Provide input first!" }
+        SWE: { app_title: "Teckenigenkänning", app_subtitle: "Rita eller klistra in en bild för att tolka tecknet med AI", tab_draw: "Rita", tab_image: "Bild", tool_brush: "Pensel", tool_eraser: "Sudd", btn_undo: "Ångra", btn_clear: "Rensa", upload_prompt: "Klicka eller dra bild hit", upload_hint: "eller klistra in med Ctrl+V", btn_paste: "Klistra in från urklipp", btn_new_image: "Byt bild", result_heading: "⚡ AI-tolkning", btn_recognize: "Tolka tecken", empty_title: "Redo för tolkning", empty_desc: "Rita ett tecken till vänster och tryck på <strong>Tolka tecken</strong>.", hero_tag: "Bästa träff", copy_hint: "📋 Klicka för att kopiera", alt_title: "Andra förslag:", btn_err_empty: "Mata in tecken först!", canvas_locked: "🔒 Tolkar...", err_no_char: "Inget tecken hittades", err_network: "Nätverksfel" },
+        ENG: { app_title: "Character Recognition", app_subtitle: "Draw or paste an image to recognize the character with AI", tab_draw: "Draw", tab_image: "Image", tool_brush: "Brush", tool_eraser: "Eraser", btn_undo: "Undo", btn_clear: "Clear", upload_prompt: "Click or drag image here", upload_hint: "or paste with Ctrl+V", btn_paste: "Paste from Clipboard", btn_new_image: "Change image", result_heading: "⚡ AI Recognition", btn_recognize: "Recognize Character", empty_title: "Ready to recognize", empty_desc: "Draw a character on the left and click <strong>Recognize Character</strong>.", hero_tag: "Best Match", copy_hint: "📋 Click to copy", alt_title: "Other candidates:", btn_err_empty: "Provide input first!", canvas_locked: "🔒 Analyzing...", err_no_char: "No character detected", err_network: "Network error" }
     };
 
     // Called automatically by base.html on language change
@@ -183,17 +194,45 @@
         document.getElementById('hero-badge-tag').textContent = t.hero_tag;
         document.getElementById('copy-hint-text').textContent = t.copy_hint;
         document.getElementById('alt-candidates-title').textContent = t.alt_title;
+        document.getElementById('canvas-lock-text').textContent = t.canvas_locked;
+    }
+
+    // Locks the canvas and all input controls while a prediction is running
+    function setInputLocked(locked) {
+        isInputLocked = locked;
+        if (locked && isDrawing) { isDrawing = false; ctx.beginPath(); }
+
+        document.getElementById('input-section').classList.toggle('input-locked', locked);
+        document.querySelectorAll('#input-section button, #file-input').forEach(el => { el.disabled = locked; });
+
+        const overlay = document.getElementById('canvas-lock-overlay');
+        if (locked) {
+            overlay.classList.remove('hidden'); overlay.classList.add('flex');
+            requestAnimationFrame(() => overlay.classList.remove('opacity-0'));
+        } else {
+            overlay.classList.add('opacity-0');
+            setTimeout(() => { if (!isInputLocked) { overlay.classList.add('hidden'); overlay.classList.remove('flex'); } }, 200);
+        }
+    }
+
+    let buttonErrorTimer = null;
+
+    function recognizeButtonHTML() {
+        const t = TRANSLATIONS[AppState.lang === 'sv' ? 'SWE' : 'ENG'];
+        return `<span class="btn-icon">🔍</span> <span id="btn-recognize-text">${t.btn_recognize}</span>`;
     }
 
     function triggerButtonError(msg) {
         const btn = document.getElementById('btn-recognize');
-        const originalHTML = btn.innerHTML;
+        clearTimeout(buttonErrorTimer);
         btn.classList.add('btn-error');
         btn.innerHTML = `<span class="text-white font-bold">⚠️ ${msg}</span>`;
-        setTimeout(() => { btn.classList.remove('btn-error'); btn.innerHTML = originalHTML; }, 2000);
+        // Always return to the normal label (not whatever the button showed before)
+        buttonErrorTimer = setTimeout(() => { btn.classList.remove('btn-error'); btn.innerHTML = recognizeButtonHTML(); }, 2000);
     }
 
     document.getElementById('tab-draw').addEventListener('click', () => {
+        if (isInputLocked) return;
         currentMode = 'draw';
         document.getElementById('tab-draw').classList.add('active'); document.getElementById('tab-image').classList.remove('active');
         document.getElementById('draw-container').classList.remove('hidden'); document.getElementById('draw-container').classList.add('flex');
@@ -201,6 +240,7 @@
     });
 
     document.getElementById('tab-image').addEventListener('click', () => {
+        if (isInputLocked) return;
         currentMode = 'image';
         document.getElementById('tab-image').classList.add('active'); document.getElementById('tab-draw').classList.remove('active');
         document.getElementById('image-container').classList.remove('hidden'); document.getElementById('image-container').classList.add('flex');
@@ -211,6 +251,7 @@
     function saveCanvasState() { historyStep++; drawHistory.length = historyStep; drawHistory.push(canvas.toDataURL()); }
 
     function undoCanvas() {
+        if (isInputLocked) return;
         if (historyStep > 0) {
             historyStep--;
             const img = new Image(); img.src = drawHistory[historyStep];
@@ -226,24 +267,25 @@
     }
 
     function draw(e) {
-        if (!isDrawing) return; e.preventDefault(); const p = getPos(e);
+        if (!isDrawing || isInputLocked) return; e.preventDefault(); const p = getPos(e);
         ctx.lineWidth = brushSize; ctx.strokeStyle = isEraser ? '#000000' : '#ffffff'; ctx.fillStyle = ctx.strokeStyle;
         ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.beginPath(); ctx.arc(p.x, p.y, brushSize / 2, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.moveTo(p.x, p.y);
     }
 
-    canvas.addEventListener('mousedown', e => { e.preventDefault(); isDrawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); draw(e); });
+    canvas.addEventListener('mousedown', e => { e.preventDefault(); if (isInputLocked) return; isDrawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); draw(e); });
     canvas.addEventListener('mousemove', draw);
     window.addEventListener('mouseup', () => { if (isDrawing) { isDrawing = false; ctx.beginPath(); saveCanvasState(); } });
-    canvas.addEventListener('touchstart', e => { e.preventDefault(); isDrawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); draw(e); }, { passive: false });
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); if (isInputLocked) return; isDrawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); draw(e); }, { passive: false });
     canvas.addEventListener('touchmove', draw, { passive: false });
     window.addEventListener('touchend', () => { if (isDrawing) { isDrawing = false; ctx.beginPath(); saveCanvasState(); } });
 
-    document.getElementById('tool-brush').addEventListener('click', () => { isEraser = false; document.getElementById('tool-brush').classList.add('active'); document.getElementById('tool-eraser').classList.remove('active'); });
-    document.getElementById('tool-eraser').addEventListener('click', () => { isEraser = true; document.getElementById('tool-eraser').classList.add('active'); document.getElementById('tool-brush').classList.remove('active'); });
+    document.getElementById('tool-brush').addEventListener('click', () => { if (isInputLocked) return; isEraser = false; document.getElementById('tool-brush').classList.add('active'); document.getElementById('tool-eraser').classList.remove('active'); });
+    document.getElementById('tool-eraser').addEventListener('click', () => { if (isInputLocked) return; isEraser = true; document.getElementById('tool-eraser').classList.add('active'); document.getElementById('tool-brush').classList.remove('active'); });
     document.getElementById('btn-undo').addEventListener('click', undoCanvas);
-    document.getElementById('btn-clear-canvas').addEventListener('click', () => { initCanvas(); saveCanvasState(); resetResultState(); });
+    document.getElementById('btn-clear-canvas').addEventListener('click', () => { if (isInputLocked) return; initCanvas(); saveCanvasState(); resetResultState(); });
 
     function handleFile(file) {
+        if (isInputLocked || !file) return;
         const reader = new FileReader();
         reader.onload = e => {
             attachedImageBase64 = e.target.result; document.getElementById('source-image').src = attachedImageBase64;
@@ -253,11 +295,11 @@
         reader.readAsDataURL(file);
     }
 
-    document.getElementById('drop-zone').addEventListener('click', () => document.getElementById('file-input').click());
+    document.getElementById('drop-zone').addEventListener('click', () => { if (!isInputLocked) document.getElementById('file-input').click(); });
     document.getElementById('file-input').addEventListener('change', e => e.target.files[0] && handleFile(e.target.files[0]));
 
     window.addEventListener('paste', e => {
-        if (currentMode !== 'image') return;
+        if (currentMode !== 'image' || isInputLocked) return;
         const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
         if (!items) return;
         for (let item of items) { if (item.type.indexOf('image') !== -1) { handleFile(item.getAsFile()); break; } }
@@ -274,6 +316,7 @@
     });
 
     document.getElementById('btn-new-image').addEventListener('click', () => {
+        if (isInputLocked) return;
         document.getElementById('image-upload-wrapper').classList.remove('hidden'); document.getElementById('image-upload-wrapper').classList.add('flex');
         document.getElementById('image-preview-wrapper').classList.add('hidden'); document.getElementById('image-preview-wrapper').classList.remove('flex');
         attachedImageBase64 = null; resetResultState();
@@ -308,6 +351,7 @@
     }
 
     document.getElementById('btn-recognize').addEventListener('click', async () => {
+        if (isInputLocked) return; // a recognition is already running
         const langKey = AppState.lang === 'sv' ? 'SWE' : 'ENG';
         const t = TRANSLATIONS[langKey];
 
@@ -315,7 +359,11 @@
         if (currentMode === 'image' && !attachedImageBase64) return triggerButtonError(t.btn_err_empty);
 
         let imgBase64 = currentMode === 'draw' ? canvas.toDataURL() : attachedImageBase64;
+        let errorMessage = null;
+        setInputLocked(true);
         const btn = document.getElementById('btn-recognize');
+        clearTimeout(buttonErrorTimer);
+        btn.classList.remove('btn-error');
         btn.classList.add('opacity-80', 'pointer-events-none');
         btn.innerHTML = `<span class="btn-icon">⏳</span> <span>${langKey === 'SWE' ? 'Tolkar...' : 'Analyzing...'}</span>`;
 
@@ -334,16 +382,18 @@
             });
             const data = await res.json();
             if (data.status === 'ok' && data.candidates && data.candidates.length > 0) { displayResults(data.candidates); } 
-            else { triggerButtonError("Inget tecken hittades"); resetResultState(); }
+            else { errorMessage = data.message || t.err_no_char; resetResultState(); }
         } catch (err) {
-            triggerButtonError("Nätverksfel"); resetResultState();
+            errorMessage = t.err_network; resetResultState();
         } finally {
             isPollingStatus = false;
             document.getElementById('loading-container').classList.add('hidden');
             document.getElementById('loading-container').classList.remove('flex');
-            
+
             btn.classList.remove('opacity-80', 'pointer-events-none');
-            btn.innerHTML = `<span class="btn-icon">🔍</span> <span id="btn-recognize-text">${t.btn_recognize}</span>`;
+            btn.innerHTML = recognizeButtonHTML();
+            setInputLocked(false);
+            if (errorMessage) triggerButtonError(errorMessage); // shown after the button is reset, so it stays visible
         }
     });
 

@@ -1,209 +1,205 @@
 from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from PIL import Image
+from PIL import Image, ImageOps, UnidentifiedImageError
 from io import BytesIO
 from pathlib import Path
 from scipy.ndimage import label
 import base64
-import numpy as np
+import binascii
+import logging
 import threading
+import numpy as np
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODELS_DIR = BASE_DIR / "models"
 TEMPLATES_DIR = BASE_DIR / "templates"
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-loaded_models = {}
 
-TARGET_MODELS = [
-    "emnist_byclass_model.keras",
-    "swe_chars_model.keras",
-]
+# --- Model configuration ---
+EMNIST_MODEL = "emnist_byclass_model.keras"
+SWE_MODEL = "swe_chars_model.keras"
+TARGET_MODELS = [EMNIST_MODEL, SWE_MODEL]
+ALL_MODELS_ALIASES = {"alla modeller", "all models", "all"}
 
 SWE_MAPPING = {0: 'Å', 1: 'Ä', 2: 'Ö', 3: 'å', 4: 'ä', 5: 'ö', 6: 'null'}
+SWE_NULL_CLASS = 'null'
+SWE_MIN_PROB = 0.15      # Minimum confidence for a Swedish character
+EMNIST_MIN_PROB = 0.10   # Minimum confidence for an EMNIST alternative
+MAX_CANDIDATES = 4
 
-# --- Loading State Variables ---
+# --- Input limits (protects the server from huge uploads) ---
+MAX_IMAGE_BYTES = 10 * 1024 * 1024       # 10 MB decoded
+MAX_IMAGE_PIXELS = 40_000_000            # e.g. ~8000 x 5000
+MAX_WORKING_SIDE = 1024                  # larger images are downscaled first
+
+# --- Localized error messages ---
+MESSAGES = {
+    "no_image":        {"SWE": "Ingen bild mottogs.",                 "ENG": "No image provided."},
+    "too_large":       {"SWE": "Bilden är för stor.",                 "ENG": "The image is too large."},
+    "bad_image":       {"SWE": "Kunde inte läsa bilden.",             "ENG": "Could not read the image."},
+    "no_character":    {"SWE": "Inget tecken hittades.",              "ENG": "No character detected."},
+    "models_missing":  {"SWE": "AI-modellerna kunde inte laddas.",    "ENG": "The AI models could not be loaded."},
+    "unknown_model":   {"SWE": "Okänd modell.",                       "ENG": "Unknown model."},
+}
+
+
+def msg(key: str, lang: str) -> str:
+    return MESSAGES[key].get(lang, MESSAGES[key]["ENG"])
+
+
+def error_response(key: str, lang: str, status_code: int) -> JSONResponse:
+    return JSONResponse(status_code=status_code, content={"status": "error", "code": key, "message": msg(key, lang)})
+
+
+# =====================================================================
+# Model loading
+# =====================================================================
+loaded_models = {}
 models_initialized = False
 model_load_progress = 0
 model_load_status = {"sv": "Väntar...", "en": "Waiting..."}
-model_lock = threading.Lock()
+model_load_error = None
+
+_load_lock = threading.Lock()      # only one thread loads the models
+_predict_lock = threading.Lock()   # Keras models are not guaranteed thread-safe
+_loader_thread = None
+
+
+def _set_progress(progress: int, sv: str, en: str):
+    global model_load_progress, model_load_status
+    model_load_progress = progress
+    model_load_status = {"sv": sv, "en": en}
+
 
 def init_models():
-    global models_initialized, model_load_progress, model_load_status
-    
-    with model_lock:
+    """Loads all models once. Safe to call from several threads."""
+    global models_initialized, model_load_error
+
+    if models_initialized:
+        return
+
+    with _load_lock:
         if models_initialized:
             return
-            
-        model_load_progress = 5
-        model_load_status = {"sv": "Initierar AI-motor...", "en": "Initializing AI engine..."}
-        
+
+        _set_progress(5, "Initierar AI-motor...", "Initializing AI engine...")
+
         try:
             from tensorflow.keras.models import load_model
-            
-            if MODELS_DIR.exists() and MODELS_DIR.is_dir():
-                total_models = len(TARGET_MODELS)
-                for i, model_name in enumerate(TARGET_MODELS):
-                    # Progress calculation (starts at 10, tops at 90 during iteration)
-                    model_load_progress = 10 + int(80 * (i / total_models))
-                    model_load_status = {
-                        "sv": f"Laddar modell {i+1} av {total_models}...", 
-                        "en": f"Loading model {i+1} of {total_models}..."
-                    }
-                    
-                    model_path = MODELS_DIR / model_name
-                    if model_path.exists() and model_path.is_file():
-                        try:
-                            model = load_model(model_path)
-                            loaded_models[model_name] = model
-                            # Warm up the model to prevent delay on first actual prediction
-                            model.predict(np.zeros((1, 28, 28, 1)), verbose=0)
-                        except Exception:
-                            pass
-                            
-                model_load_progress = 95
-                model_load_status = {"sv": "Slutför inställningar...", "en": "Finalizing setup..."}
-        except ImportError:
-            pass
-            
+        except ImportError as e:
+            logger.error("TensorFlow could not be imported: %s", e)
+            model_load_error = "TensorFlow is not installed"
+            load_model = None
+
+        if load_model is not None:
+            total = len(TARGET_MODELS)
+            for i, model_name in enumerate(TARGET_MODELS):
+                _set_progress(10 + int(80 * i / total),
+                              f"Laddar modell {i + 1} av {total}...",
+                              f"Loading model {i + 1} of {total}...")
+
+                model_path = MODELS_DIR / model_name
+                if not model_path.is_file():
+                    logger.warning("Model file not found: %s", model_path)
+                    continue
+                try:
+                    # compile=False: we only run inference, so optimizer state is not needed (faster load)
+                    model = load_model(model_path, compile=False)
+                    # Warm-up call so the first real prediction is fast
+                    model(np.zeros((1, 28, 28, 1), dtype=np.float32), training=False)
+                    loaded_models[model_name] = model
+                    logger.info("Loaded model %s", model_name)
+                except Exception:
+                    logger.exception("Failed to load model %s", model_name)
+
+            if not loaded_models and model_load_error is None:
+                model_load_error = "No models could be loaded"
+
+        _set_progress(100, "Klar", "Ready")
         models_initialized = True
-        model_load_progress = 100
-        model_load_status = {"sv": "Klar", "en": "Ready"}
 
-def emnist_idx_to_char(i: int) -> str:
-    if i <= 9: return str(i)
-    elif i <= 35: return chr(i - 10 + ord('A'))
-    else: return chr(i - 36 + ord('a'))
 
-def resolve_model_filename(choice: str) -> str:
-    if choice in ["Alla modeller", "All models"]:
-        return "Alla modeller"
-    for m in loaded_models.keys():
-        clean_name = m.replace(".keras", "").replace("_", " ").title()
-        if choice.lower() == clean_name.lower() or choice == m:
-            return m
-    return choice
+def start_background_loading():
+    """Starts loading the models in a background thread (no-op if already started)."""
+    global _loader_thread
+    if models_initialized or (_loader_thread is not None and _loader_thread.is_alive()):
+        return
+    _loader_thread = threading.Thread(target=init_models, name="ocr-model-loader", daemon=True)
+    _loader_thread.start()
 
-def predict_single_model(model_name: str, pixels_28x28: np.ndarray):
-    model = loaded_models.get(model_name)
-    if model is None: return []
 
-    model_input = pixels_28x28.reshape(1, 28, 28, 1) / 255.0
-    probs = model.predict(model_input, verbose=0)[0]
-    options = []
+# =====================================================================
+# Image preprocessing
+# =====================================================================
+class ImageTooLargeError(ValueError):
+    pass
 
-    if "swe_chars" in model_name:
-        top_indices = np.argsort(probs)[::-1]
-        for idx in top_indices:
-            char = SWE_MAPPING.get(int(idx), str(idx))
-            if char.lower() != "null" and probs[idx] >= 0.15:
-                options.append((char, float(probs[idx])))
-        return options[:3]
 
-    top_indices = np.argsort(probs)[-3:][::-1]
-    for i in top_indices:
-        if probs[i] >= 0.10: 
-            options.append((emnist_idx_to_char(int(i)), float(probs[i])))
-    
-    if not options: 
-        options.append((emnist_idx_to_char(int(top_indices[0])), float(probs[top_indices[0]])))
-        
-    return options[:3]
+def decode_image(data_url: str) -> Image.Image:
+    """Decodes a base64 string / data URL to a grayscale PIL image.
+    Transparent pixels are composited onto a white background."""
+    raw_b64 = data_url.split(",", 1)[1] if "," in data_url else data_url
 
-def predict_all_models(pixels_28x28: np.ndarray):
-    swe_options = []
-    emnist_options = []
-    
-    if "swe_chars_model.keras" in loaded_models:
-        swe_options = predict_single_model("swe_chars_model.keras", pixels_28x28)
-        
-    if swe_options:
-        return [swe_options[0][0]]
-        
-    if "emnist_byclass_model.keras" in loaded_models:
-        emnist_options = predict_single_model("emnist_byclass_model.keras", pixels_28x28)
-        
-    candidates = []
-    seen = set()
-        
-    for char, prob in emnist_options:
-        if char.lower() not in seen and len(candidates) < 4:
-            candidates.append(char)
-            seen.add(char.lower())
-            
-    return candidates
+    # Cheap size check before decoding (base64 is ~4/3 of the binary size)
+    if len(raw_b64) * 3 // 4 > MAX_IMAGE_BYTES:
+        raise ImageTooLargeError()
 
-class PredictRequest(BaseModel):
-    image: str
-    model: str = "Alla modeller"
-    lang: str = "SWE"
+    img_bytes = base64.b64decode(raw_b64)
+    img = Image.open(BytesIO(img_bytes))
 
-@router.get("/ocr")
-async def serve_ocr(request: Request):
-    return templates.TemplateResponse(
-        request=request, 
-        name="ocr.html", 
-        context={"page_title": "Teckenigenkänning / AI OCR", "back_url": "/"}
-    )
+    if img.width * img.height > MAX_IMAGE_PIXELS:
+        raise ImageTooLargeError()
 
-@router.get("/api/ocr/status")
-async def get_ocr_status():
-    """Returns the current loading progress of the AI models. Runs on the main event loop."""
-    return {
-        "initialized": models_initialized,
-        "progress": model_load_progress,
-        "status": model_load_status
-    }
+    # Respect camera rotation for photos pasted from a phone
+    img = ImageOps.exif_transpose(img)
 
-@router.post("/api/predict")
-def predict_character(req: PredictRequest):
-    init_models()
-    
-    if not req.image:
-        return {"status": "error", "message": "Ingen bild mottogs / No image provided."}
+    if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+        rgba = img.convert('RGBA')
+        bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
+        bg.paste(rgba, mask=rgba.split()[-1])
+        img = bg.convert("L")
+    else:
+        img = img.convert("L")
 
-    try:
-        raw_b64 = req.image
-        if "," in raw_b64: raw_b64 = raw_b64.split(",", 1)[1]
-        img_bytes = base64.b64decode(raw_b64)
-        
-        # Address transparency issue: composite transparent PNGs onto white background
-        img = Image.open(BytesIO(img_bytes))
-        if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
-            alpha = img.convert('RGBA').split()[-1]
-            bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
-            bg.paste(img, mask=alpha)
-            img = bg.convert("L")
-        else:
-            img = img.convert("L")
-            
-    except Exception as e:
-        return {"status": "error", "message": f"Kunde inte tolka bilden: {e}"}
+    # Very large photos are downscaled for speed; the final input is only 28x28 anyway
+    if max(img.size) > MAX_WORKING_SIDE:
+        img.thumbnail((MAX_WORKING_SIDE, MAX_WORKING_SIDE), Image.Resampling.LANCZOS)
 
-    arr = np.array(img)
-    if arr.mean() > 127: arr = 255 - arr
+    return img
 
+
+def preprocess(img: Image.Image):
+    """Converts a grayscale image to a 28x28 EMNIST-style array (white character on black).
+    Returns None if no character is found."""
+    arr = np.array(img, dtype=np.uint8)
+
+    # Models expect a light character on a dark background
+    if arr.mean() > 127:
+        arr = 255 - arr
+
+    # Remove faint background noise
     threshold = min(30, np.percentile(arr, 95) * 0.4) if arr.max() > 0 else 30
     arr[arr < threshold] = 0
 
+    # Remove small specks (connected components much smaller than the main stroke)
     labeled_array, num_features = label(arr > 0)
     if num_features > 0:
         sizes = np.bincount(labeled_array.ravel())
-        sizes[0] = 0 
-        largest_size = sizes.max()
-        min_size = max(15, largest_size * 0.005) 
-        
-        for i in range(1, num_features + 1):
-            if sizes[i] < min_size:
-                arr[labeled_array == i] = 0
+        sizes[0] = 0
+        min_size = max(15, sizes.max() * 0.005)
+        arr[sizes[labeled_array] < min_size] = 0  # vectorized: one pass instead of one per component
 
     coords = np.argwhere(arr > 0)
     if coords.size == 0:
-        return {"status": "error", "message": "Inget tecken hittades / No character detected."}
+        return None
 
+    # Crop to the character and pad it to a square
     y0, x0 = coords.min(axis=0)
     y1, x1 = coords.max(axis=0)
     cropped = arr[y0:y1 + 1, x0:x1 + 1]
@@ -211,27 +207,156 @@ def predict_character(req: PredictRequest):
     h, w = cropped.shape
     size = max(h, w)
     square = np.zeros((size, size), dtype=np.uint8)
+    y_off = (size - h) // 2
+    x_off = (size - w) // 2
+    square[y_off:y_off + h, x_off:x_off + w] = cropped
 
-    y_offset = (size - h) // 2
-    x_offset = (size - w) // 2
-    square[y_offset:y_offset + h, x_offset:x_offset + w] = cropped
-
+    # Fit into a 20x20 box and center it in a 28x28 frame (same as MNIST/EMNIST)
     square_img = Image.fromarray(square)
     square_img.thumbnail((20, 20), Image.Resampling.LANCZOS)
 
     img_28 = Image.new("L", (28, 28), 0)
-    x = (28 - square_img.width) // 2
-    y = (28 - square_img.height) // 2
-    img_28.paste(square_img, (x, y))
+    img_28.paste(square_img, ((28 - square_img.width) // 2, (28 - square_img.height) // 2))
+    return np.array(img_28)
 
-    pixels = np.array(img_28)
-    real_model_name = resolve_model_filename(req.model)
 
-    if real_model_name == "Alla modeller":
+# =====================================================================
+# Prediction
+# =====================================================================
+def emnist_idx_to_char(i: int) -> str:
+    if i <= 9:
+        return str(i)
+    if i <= 35:
+        return chr(i - 10 + ord('A'))
+    return chr(i - 36 + ord('a'))
+
+
+def run_model(model_name: str, pixels_28x28: np.ndarray):
+    """Returns the model's probability vector, or None if the model is not loaded."""
+    model = loaded_models.get(model_name)
+    if model is None:
+        return None
+    x = (pixels_28x28.reshape(1, 28, 28, 1) / 255.0).astype(np.float32)
+    # Calling the model directly is much faster than model.predict() for a single image
+    with _predict_lock:
+        probs = model(x, training=False)
+    return np.asarray(probs)[0]
+
+
+def predict_single_model(model_name: str, pixels_28x28: np.ndarray):
+    """Returns up to 3 (char, probability) tuples, best first."""
+    probs = run_model(model_name, pixels_28x28)
+    if probs is None:
+        return []
+
+    order = np.argsort(probs)[::-1]
+
+    if model_name == SWE_MODEL:
+        # If the model's best guess is "not a Swedish letter", trust that
+        if SWE_MAPPING.get(int(order[0])) == SWE_NULL_CLASS:
+            return []
+        options = []
+        for idx in order:
+            char = SWE_MAPPING.get(int(idx), str(idx))
+            if char != SWE_NULL_CLASS and probs[idx] >= SWE_MIN_PROB:
+                options.append((char, float(probs[idx])))
+        return options[:3]
+
+    options = [(emnist_idx_to_char(int(i)), float(probs[i])) for i in order[:3] if probs[i] >= EMNIST_MIN_PROB]
+    if not options:
+        options.append((emnist_idx_to_char(int(order[0])), float(probs[order[0]])))
+    return options
+
+
+def predict_all_models(pixels_28x28: np.ndarray):
+    """Swedish letters (Å, Ä, Ö) take priority; EMNIST results are added as alternatives."""
+    swe_options = predict_single_model(SWE_MODEL, pixels_28x28)
+    emnist_options = predict_single_model(EMNIST_MODEL, pixels_28x28)
+
+    candidates, seen = [], set()
+    for char, _ in swe_options[:1] + emnist_options:
+        if char.lower() not in seen:
+            candidates.append(char)
+            seen.add(char.lower())
+        if len(candidates) >= MAX_CANDIDATES:
+            break
+    return candidates
+
+
+def resolve_model_filename(choice: str):
+    """Maps a user-facing model name to a filename. Returns None for 'all models'."""
+    if not choice or choice.strip().lower() in ALL_MODELS_ALIASES:
+        return None
+    for m in TARGET_MODELS:
+        pretty = m.replace(".keras", "").replace("_", " ")
+        if choice == m or choice.lower() == pretty.lower():
+            return m
+    return choice
+
+
+# =====================================================================
+# Routes
+# =====================================================================
+class PredictRequest(BaseModel):
+    image: str
+    model: str = "Alla modeller"
+    lang: str = "SWE"
+
+
+@router.get("/ocr")
+async def serve_ocr(request: Request):
+    # Start loading the AI models as soon as someone opens the page,
+    # so they are usually ready by the time the first character is drawn.
+    start_background_loading()
+    return templates.TemplateResponse(
+        request=request,
+        name="ocr.html",
+        context={"page_title": "Teckenigenkänning / AI OCR", "back_url": "/"}
+    )
+
+
+@router.get("/api/ocr/status")
+async def get_ocr_status():
+    """Returns the current loading progress of the AI models."""
+    return {
+        "initialized": models_initialized,
+        "progress": model_load_progress,
+        "status": model_load_status,
+        "models": list(loaded_models.keys()),
+        "error": model_load_error,
+    }
+
+
+@router.post("/api/predict")
+def predict_character(req: PredictRequest):
+    lang = "SWE" if req.lang.upper() in ("SWE", "SV") else "ENG"
+
+    if not req.image:
+        return error_response("no_image", lang, 400)
+
+    try:
+        img = decode_image(req.image)
+    except ImageTooLargeError:
+        return error_response("too_large", lang, 413)
+    except (binascii.Error, UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+        return error_response("bad_image", lang, 400)
+
+    pixels = preprocess(img)
+    if pixels is None:
+        return error_response("no_character", lang, 422)
+
+    init_models()  # returns immediately once models are loaded
+    if not loaded_models:
+        return error_response("models_missing", lang, 503)
+
+    model_name = resolve_model_filename(req.model)
+    if model_name is None:
         candidates = predict_all_models(pixels)
-    elif real_model_name in loaded_models:
-        raw_candidates = predict_single_model(real_model_name, pixels)
-        candidates = [c[0] for c in raw_candidates]
+    elif model_name in loaded_models:
+        candidates = [c for c, _ in predict_single_model(model_name, pixels)]
     else:
-        candidates = []
+        return error_response("unknown_model", lang, 400)
+
+    if not candidates:
+        return error_response("no_character", lang, 422)
     return {"status": "ok", "candidates": candidates}
